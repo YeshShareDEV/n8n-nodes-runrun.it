@@ -1,16 +1,18 @@
 {
   "name": "n8n-nodes-runrunit",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "n8n nodes for Runrun.it API",
   "license": "MIT",
+  "homepage": "https://github.com/YeshShareDEV/n8n-nodes-runrun.it",
   "author": {
     "name": "Marcos Campos",
     "email": "contato@yeshshare.com.br"
   },
+  "main": "dist/nodes/RunrunIt/RunrunIt.node.js",
   "scripts": {
-    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});\" && n8n-node build",
-    "build:watch": "tsc --watch",
-    "dev": "n8n-node dev",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});\"",
+    "build": "npm run clean && n8n-node build",
+    "prepublishOnly": "npm run build",
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release"
