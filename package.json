@@ -11,7 +11,8 @@
   "main": "dist/nodes/RunrunIt/RunrunIt.node.js",
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});\"",
-    "build": "npm run clean && n8n-node build",
+    "build": "npm run clean && n8n-node build && npm run copy:assets",
+    "copy:assets": "node -e \"const fs=require('fs'); const path=require('path'); const dest='dist/nodes/RunrunIt'; if(!fs.existsSync(dest)) fs.mkdirSync(dest, {recursive:true}); fs.readdirSync('nodes/RunrunIt').filter(f => f.endsWith('.svg') || f.endsWith('.png')).forEach(f => fs.copyFileSync(path.join('nodes/RunrunIt', f), path.join(dest, f)));\"",
     "prepublishOnly": "npm run build",
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
