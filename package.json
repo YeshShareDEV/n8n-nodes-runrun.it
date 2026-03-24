@@ -41,7 +41,7 @@
 			"dist/credentials/RunrunIt.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/GlpiV2/GlpiV2.node.js"
+			"dist/nodes/RunrunIt/RunrunIt.node.js"
 		]
 	},
 	"devDependencies": {
