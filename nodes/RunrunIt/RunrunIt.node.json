@@ -1,21 +1,20 @@
 {
-  "node": "n8n-nodes-runrunit",
-  "nodeVersion": "1.0",
-  "codexVersion": "1.0",
-  "categories": [
-    "Productivity",
-    "Project Management"
-  ],
-  "resources": {
-    "credentialDocumentation": [
-      {
-        "url": "https://help.runrun.it/pt-br/article/api-do-runrunit-15n5m03/"
-      }
-    ],
-    "primaryDocumentation": [
-      {
-        "url": "https://runrun.it/en-US/api/v1.0/docs"
-      }
-    ]
-  }
+	"node": "n8n-nodes-runrunit",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Productivity", "IT Management"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.runrun.it/"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.runrun.it/"
+			}
+		]
+	}
 }
+
+
