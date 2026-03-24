@@ -1,0 +1,44 @@
+{
+  "name": "n8n-nodes-runrunit",
+  "version": "0.2.4",
+  "description": "n8n nodes for Runrun.it API",
+  "license": "MIT",
+  "author": {
+    "name": "Marcos Campos",
+    "email": "contato@yeshshare.com.br"
+  },
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});\" && n8n-node build",
+    "build:watch": "tsc --watch",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/RunrunIt.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/RunrunIt/RunrunIt.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "*",
+    "eslint": "9.32.0",
+    "n8n-workflow": "^1.120.9",
+    "@types/node": "^20.0.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  },
+  "dependencies": {
+    "change-case": "4.1.2"
+  }
+}
