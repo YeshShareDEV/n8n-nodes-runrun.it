@@ -6,5 +6,5 @@ All notable changes to this project will be documented in this file.
 - Bump package version to 2.0.12.13
 
 ## [2.0.11] - 2026-02-23
-- Merge older business logic into `GlpiV2.node.ts` while keeping new authentication flow.
+- Merge older business logic into `Runrunit.node.ts` while keeping new authentication flow.
 

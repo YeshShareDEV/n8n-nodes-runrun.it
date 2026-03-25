@@ -1,4 +1,4 @@
-# 🔐 Auto Init Session — GLPI Authentication (Obrigatório)
+# 🔐 Auto Init Session — Runrun.it Authentication (Obrigatório)
 
 ## 🎯 Objetivo
 
@@ -16,7 +16,7 @@ O **Session-Token passa a ser gerado automaticamente** sempre que o node executa
 
 1. Credencial armazena:
 
-   * GLPI URL
+  * Runrun.it URL
    * App-Token
    * Username
    * Password
@@ -33,19 +33,19 @@ O **Session-Token passa a ser gerado automaticamente** sempre que o node executa
 
 ## 6️⃣ Arquivo de Credenciais (ATUALIZADO)
 
-### 💼 `GlpiApi.credentials.ts`
+### 💼 `RunrunItApi.credentials.ts`
 
 ```ts
 import { ICredentialType } from 'n8n-workflow';
 
-export class GlpiApi implements ICredentialType {
-  name = 'glpiApi';
-  displayName = 'GLPI API';
+export class RunrunItApi implements ICredentialType {
+  name = 'runrunitApi';
+  displayName = 'Runrun.it API';
   documentationUrl = 'https://atendimento.centrium.com.br/api.php';
 
   properties = [
     {
-      displayName: 'GLPI URL',
+      displayName: 'Runrun.it URL',
       name: 'host',
       type: 'string',
       default: '',
@@ -80,7 +80,7 @@ export class GlpiApi implements ICredentialType {
 ```
 
 ✅ **Session-Token removido da credencial**
-✅ **Compatível com Basic Auth do GLPI**
+✅ **Compatível com Basic Auth do Runrun.it**
 
 ---
 
@@ -88,7 +88,7 @@ export class GlpiApi implements ICredentialType {
 
 ## 7️⃣ Node Principal (ATUALIZADO)
 
-### 📌 `GlpiApi.node.ts` (com Auto Session)
+### 📌 `RunrunItApi.node.ts` (com Auto Session)
 
 ```ts
 import {
@@ -121,26 +121,26 @@ async function initSession(
   });
 
   if (!response?.session_token) {
-    throw new Error('Failed to init GLPI session');
+    throw new Error('Failed to init Runrun.it session');
   }
 
   return response.session_token;
 }
 
-export class GlpiApi implements INodeType {
+export class RunrunItApi implements INodeType {
   description: INodeTypeDescription = {
-    displayName: 'GLPI API',
-    name: 'glpiApi',
+    displayName: 'Runrun.it API',
+    name: 'runrunitApi',
     icon: 'file:glpi.svg',
     group: ['transform'],
     version: 1,
-    description: 'GLPI REST API',
+    description: 'Runrun.it REST API',
     defaults: {
-      name: 'GLPI API',
+      name: 'Runrun.it API',
     },
     inputs: [NodeConnectionTypes.Main],
     outputs: [NodeConnectionTypes.Main],
-    credentials: [{ name: 'glpiApi', required: true }],
+    credentials: [{ name: 'runrunitApi', required: true }],
     properties: [
       {
         displayName: 'Operation',
@@ -214,7 +214,7 @@ export class GlpiApi implements INodeType {
     const items = this.getInputData();
     const returnData: INodeExecutionData[] = [];
 
-    const creds = await this.getCredentials('glpiApi');
+    const creds = await this.getCredentials('runrunitApi');
     const baseUrl = creds.host as string;
 
     // 🔐 Auto init session (uma vez por execução)
@@ -340,7 +340,7 @@ Comportamento quando `Send raw body` = false (padrão):
 Exemplo (cURL original que você forneceu):
 
 ```
-POST https://glpi.example.com/api.php/Administration/User
+POST https://runrun.example.com/api.php/Administration/User
 Content-Type: application/json
 
 {

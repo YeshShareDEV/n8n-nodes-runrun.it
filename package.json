@@ -1,13 +1,13 @@
 {
-	"name": "n8n-nodes-glpi-v2-fork",
+	"name": "n8n-nodes-runrunit",
 	"version": "2.1.17-rc.31",
-	"description": "GLPI Rest API Node compatible with GLPI API V2.",
+	"description": "RunRun.it Rest API Node compatible with RunRun.it.",
 	"license": "MIT",
-	"homepage": "https://github.com/YeshShareDEV/n8n-nodes-glpi-v2-glpi11",
+	"homepage": "https://github.com/YeshShareDEV/n8n-nodes-runrun.it.git",
 	"keywords": [
 		"n8n-community-node-package",
 		"n8n",
-		"glpi",
+		"runrun.it",
 		"it-management",
 		"ticket-system"
 	],
@@ -17,7 +17,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/YeshShareDEV/n8n-nodes-glpi-v2-glpi11.git"
+		"url": "https://github.com/YeshShareDEV/n8n-nodes-runrun.it.git"
 	},
 	"scripts": {
 		"build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});\" && n8n-node build",
@@ -38,10 +38,10 @@
 		"n8nNodesApiVersion": 1,
 		"strict": true,
 		"credentials": [
-			"dist/credentials/GlpiV2Api.credentials.js"
+			"dist/credentials/RunrunItApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/GlpiV2/GlpiV2.node.js"
+			"dist/nodes/RunrunIt/RunrunItApi.node.js"
 		]
 	},
 	"devDependencies": {
