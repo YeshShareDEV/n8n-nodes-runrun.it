@@ -1,0 +1,61 @@
+{
+	"name": "n8n-nodes-glpi-v2-fork",
+	"version": "2.1.17-rc.31",
+	"description": "GLPI Rest API Node compatible with GLPI API V2.",
+	"license": "MIT",
+	"homepage": "https://github.com/YeshShareDEV/n8n-nodes-glpi-v2-glpi11",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"glpi",
+		"it-management",
+		"ticket-system"
+	],
+	"author": {
+		"name": "YeshShareDEV",
+		"email": "contato@yeshshare.com.br"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/YeshShareDEV/n8n-nodes-glpi-v2-glpi11.git"
+	},
+	"scripts": {
+		"build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});\" && n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"release": "n8n-node release",
+		"ver:rc": "npm version prerelease --preid=rc -m \"chore(release): %s\" && git push --follow-tags",
+		"ver:patch": "npm version patch -m \"chore(release): %s\" && git push --follow-tags",
+		"ver:minor": "npm version minor -m \"chore(release): %s\" && git push --follow-tags",
+		"ver:major": "npm version major -m \"chore(release): %s\" && git push --follow-tags"
+	},
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/GlpiV2Api.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/GlpiV2/GlpiV2.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "*",
+		"eslint": "9.32.0",
+		"n8n-workflow": "^1.120.9",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	},
+	"dependencies": {
+		"change-case": "4.1.2"
+	}
+}
