@@ -1,7 +1,7 @@
 {
 	"name": "n8n-nodes-runrunit",
-	"version": "2.1.17-rc.31",
-	"description": "runrun.it Rest API Node compatible with runrun.it API V2.",
+	"version": "0.3.1",
+	"description": "Runrun.it Rest API Node compatible with Runrun.it API V2.",
 	"license": "MIT",
 	"homepage": "https://github.com/YeshShareDEV/n8n-nodes-runrun.it",
 	"keywords": [
@@ -19,6 +19,7 @@
 		"type": "git",
 		"url": "https://github.com/YeshShareDEV/n8n-nodes-runrun.it.git"
 	},
+	"main": "dist/nodes/RunrunIt/RunrunIt.node.js",
 	"scripts": {
 		"build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true});\" && n8n-node build",
 		"build:watch": "tsc --watch",
@@ -27,9 +28,7 @@
 		"lint:fix": "n8n-node lint --fix",
 		"release": "n8n-node release",
 		"ver:rc": "npm version prerelease --preid=rc -m \"chore(release): %s\" && git push --follow-tags",
-		"ver:patch": "npm version patch -m \"chore(release): %s\" && git push --follow-tags",
-		"ver:minor": "npm version minor -m \"chore(release): %s\" && git push --follow-tags",
-		"ver:major": "npm version major -m \"chore(release): %s\" && git push --follow-tags"
+		"ver:patch": "npm version patch -m \"chore(release): %s\" && git push --follow-tags"
 	},
 	"files": [
 		"dist"
@@ -44,18 +43,21 @@
 			"dist/nodes/RunrunIt/RunrunIt.node.js"
 		]
 	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
 	"devDependencies": {
-		"@n8n/node-cli": "*",
-		"eslint": "9.32.0",
-		"n8n-workflow": "^1.120.9",
-		"prettier": "3.6.2",
-		"release-it": "^19.0.4",
-		"typescript": "5.9.2"
+		"@n8n/node-cli": "latest",
+		"n8n-workflow": "^1.0.0",
+		"typescript": "~5.2.0"
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
 	},
 	"dependencies": {
+		"change-case": "4.1.2"
+	},
+	"overrides": {
 		"change-case": "4.1.2"
 	}
 }
