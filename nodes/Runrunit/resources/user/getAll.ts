@@ -33,6 +33,38 @@ export const userGetManyDescription: INodeProperties[] = [
 		description: 'Max number of results to return',
 	},
 	{
+		displayName: 'Search Term',
+		name: 'search_term',
+		type: 'string',
+		displayOptions: {
+			show: showOnlyForUserGetMany,
+		},
+		default: '',
+		description: 'Search term to filter users by name or email',
+		routing: {
+			send: {
+				type: 'query',
+				property: 'search_term',
+			},
+		},
+	},
+	{
+		displayName: 'Page',
+		name: 'page',
+		type: 'number',
+		displayOptions: {
+			show: showOnlyForUserGetMany,
+		},
+		default: 1,
+		description: 'Page number for pagination (1-based)',
+		routing: {
+			send: {
+				type: 'query',
+				property: 'page',
+			},
+		},
+	},
+	{
 		displayName: 'Return All',
 		name: 'returnAll',
 		type: 'boolean',

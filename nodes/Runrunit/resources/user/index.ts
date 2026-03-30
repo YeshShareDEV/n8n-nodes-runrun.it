@@ -2,6 +2,7 @@ import type { INodeProperties } from 'n8n-workflow';
 import { userCreateDescription } from './create';
 import { userGetDescription } from './get';
 import { userGetManyDescription } from './getAll';
+import { userUpdateDescription } from './update';
 
 const showOnlyForUsers = {
 	resource: ['user'],
@@ -53,10 +54,23 @@ export const userDescription: INodeProperties[] = [
 					},
 				},
 			},
+            {
+                name: 'Update',
+                value: 'update',
+                action: 'Update a user',
+                description: 'Update an existing user',
+                routing: {
+                    request: {
+                        method: 'PUT',
+                        url: '=/users/{{$parameter.userId}}',
+                    },
+                },
+            },
 		],
 		default: 'getAll',
 	},
 	...userGetManyDescription,
 	...userGetDescription,
 	...userCreateDescription,
+	...userUpdateDescription,
 ];
