@@ -19,7 +19,7 @@ export class Runrunit implements INodeType {
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [{ name: 'runrunitApi', required: true }],
 		requestDefaults: {
-			baseURL: 'https://runrun.it/api/v1',
+			baseURL: 'https://runrun.it/api/v1.0',
 			headers: {
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
