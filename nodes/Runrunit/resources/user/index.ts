@@ -1,6 +1,7 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { userCreateDescription } from './create';
 import { userGetDescription } from './get';
+import { userGetManyDescription } from './getAll';
 
 const showOnlyForUsers = {
 	resource: ['user'],
@@ -55,6 +56,7 @@ export const userDescription: INodeProperties[] = [
 		],
 		default: 'getAll',
 	},
+	...userGetManyDescription,
 	...userGetDescription,
 	...userCreateDescription,
 ];
