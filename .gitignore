@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+dist/
+*.log
+
+# VS Code e IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# n8n e Build
+nodes/*.js
+nodes/*.map
+credentials/*.js
+credentials/*.map
+
+# Arquivos temporários e testes
+junit.xml
+coverage/
