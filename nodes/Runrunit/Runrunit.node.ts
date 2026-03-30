@@ -1,6 +1,5 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
 import { userDescription } from './resources/user';
-import { companyDescription } from './resources/company';
 import { taskDescription } from './resources/task';
 
 export class Runrunit implements INodeType {
@@ -38,10 +37,6 @@ export class Runrunit implements INodeType {
 						value: 'user',
 					},
 					{
-						name: 'Company',
-						value: 'company',
-					},
-					{
 						name: 'Task',
 						value: 'task',
 					},
@@ -49,7 +44,6 @@ export class Runrunit implements INodeType {
 				default: 'user',
 			},
 			...userDescription,
-			...companyDescription,
 			...taskDescription,
 		],
 	};
