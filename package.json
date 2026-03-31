@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-runrunit",
   "version": "0.3.3",
-  "description": "",
+  "description": "n8n community nodes for Runrun.it (Runrunit) integrations",
   "license": "MIT",
   "homepage": "",
   "keywords": [
@@ -19,6 +19,7 @@
     "build": "n8n-node build",
     "build:watch": "tsc --watch",
     "dev": "n8n-node dev",
+    "debug:env": "node -e \"console.log(process.env.PATH); const { execSync } = require('child_process'); try { console.log(execSync('command -v n8n-node').toString().trim()); } catch (e) { console.log('n8n-node: not found'); }\"",
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@n8n/node-cli": "*",
     "eslint": "9.32.0",
+    "n8n-node-dev": "^1.121.16",
     "prettier": "3.6.2",
     "release-it": "^19.0.4",
     "typescript": "5.9.2"

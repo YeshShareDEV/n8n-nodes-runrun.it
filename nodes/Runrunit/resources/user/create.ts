@@ -12,7 +12,7 @@ export const userCreateDescription: INodeProperties[] = [
 		type: 'json',
 		displayOptions: { show: showOnlyForUserCreate },
 		default: '{"name":"","email":"","role":"user"}',
-		description: 'Full user object that will be sent as the `user` payload (e.g. {"name":"Joao","email":"joao@example.com","role":"user"}).',
+		description: 'Full user object that will be sent as the `user` payload (e.g. {"name":"Joao","email":"joao@example.com","role":"user"})',
 		routing: {
 			send: {
 				type: 'body',

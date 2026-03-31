@@ -3,6 +3,7 @@ import type {
 	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
+	Icon,
 } from 'n8n-workflow';
 
 export class RunrunitApi implements ICredentialType {
@@ -12,6 +13,8 @@ export class RunrunitApi implements ICredentialType {
 
 	// Link to your community node's README
 	documentationUrl = 'https://github.com/org/-runrunit?tab=readme-ov-file#credentials';
+
+	icon: Icon = ('file:runrunit.svg' as unknown) as Icon;
 
 	properties: INodeProperties[] = [
 		{

@@ -21,7 +21,7 @@ export const taskUpdateDescription: INodeProperties[] = [
 		type: 'json',
 		displayOptions: { show: showOnlyForTaskUpdate },
 		default: '{"custom_fields": {}}',
-		description: 'Full task object or partial object that will be sent as the `task` payload (e.g. {"custom_fields": {"custom_20":"Sim"}}).',
+		description: 'Full task object or partial object that will be sent as the `task` payload (e.g. {"custom_fields": {"custom_20":"Sim"}})',
 		routing: {
 			send: {
 				type: 'body',

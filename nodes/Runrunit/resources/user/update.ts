@@ -21,7 +21,7 @@ export const userUpdateDescription: INodeProperties[] = [
 		type: 'json',
 		displayOptions: { show: showOnlyForUserUpdate },
 		default: '{"name":"","email":"","role":"user"}',
-		description: 'Full user object or partial object that will be sent as the `user` payload (e.g. {"name":"Maria"}).',
+		description: 'Full user object or partial object that will be sent as the `user` payload (e.g. {"name":"Maria"})',
 		routing: {
 			send: {
 				type: 'body',
