@@ -5,7 +5,13 @@
   "license": "MIT",
   "homepage": "",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "n8n",
+    "n8n-node",
+    "runrunit",
+    "runrun",
+    "runrun.it",
+    "project-management"
   ],
   "author": {
     "name": "Marcos Campos",
