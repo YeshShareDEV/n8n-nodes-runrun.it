@@ -4,11 +4,6 @@ const showOnlyForClients = {
   resource: ['clients'],
 };
 
-const showOnlyForClientWithId = {
-  resource: ['clients'],
-  operation: ['get', 'update', 'monthly_budgets'],
-};
-
 export const clientsDescription: INodeProperties[] = [
   {
     displayName: 'Operation',

@@ -4,11 +4,6 @@ const showOnlyForDescendants = {
   resource: ['descendants'],
 };
 
-const showOnlyForDescendantWithId = {
-  resource: ['descendants'],
-  operation: ['get', 'delete'],
-};
-
 export const descendantsDescription: INodeProperties[] = [
   {
     displayName: 'Operation',

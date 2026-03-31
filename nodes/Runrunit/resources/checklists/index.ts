@@ -4,11 +4,6 @@ const showOnlyForChecklists = {
   resource: ['checklists'],
 };
 
-const showOnlyForChecklistWithId = {
-  resource: ['checklists'],
-  operation: ['get', 'create', 'update', 'delete'],
-};
-
 export const checklistsDescription: INodeProperties[] = [
   {
     displayName: 'Operation',
