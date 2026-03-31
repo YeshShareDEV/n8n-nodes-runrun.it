@@ -4,6 +4,13 @@ import { taskDescription } from './resources/task';
 import { teamDescription } from './resources/team';
 import { timeWorkedDescription } from './resources/timeWorked';
 import { boardStageDescription } from './resources/boardStage';
+import { commentsDescription } from './resources/comments';
+import { documentsDescription } from './resources/documents';
+import { checklistsDescription } from './resources/checklists';
+import { checklistItemsDescription } from './resources/checklistItems';
+import { clientsDescription } from './resources/clients';
+import { descendantsDescription } from './resources/descendants';
+import { descriptionsDescription } from './resources/descriptions';
 
 export class Runrunit implements INodeType {
 	description: INodeTypeDescription = {
@@ -47,10 +54,38 @@ export class Runrunit implements INodeType {
 						name: 'Team',
 						value: 'team',
 					},
-						{
-							name: 'Board Stages',
-							value: 'boardStage',
-						},
+					{
+						name: 'Board Stages',
+						value: 'boardStage',
+					},
+					{
+						name: 'Comments',
+						value: 'comments',
+					},
+					{
+						name: 'Documents',
+						value: 'documents',
+					},
+					{
+						name: 'Checklists',
+						value: 'checklists',
+					},
+					{
+						name: 'Checklist Items',
+						value: 'checklistItems',
+					},
+					{
+						name: 'Clients',
+						value: 'clients',
+					},
+					{
+						name: 'Descendants',
+						value: 'descendants',
+					},
+					{
+						name: 'Descriptions',
+						value: 'descriptions',
+					},
 					{
 						name: 'Time Worked',
 						value: 'timeWorked',
@@ -58,11 +93,18 @@ export class Runrunit implements INodeType {
 				],
 				default: 'user',
 				},
-					...teamDescription,
-					...timeWorkedDescription,
-					...boardStageDescription,
-					...userDescription,
-					...taskDescription,
+						...teamDescription,
+						...timeWorkedDescription,
+						...boardStageDescription,
+						...clientsDescription,
+						...commentsDescription,
+						...documentsDescription,
+						...checklistsDescription,
+						...checklistItemsDescription,
+						...descendantsDescription,
+						...descriptionsDescription,
+						...userDescription,
+						...taskDescription,
 		],
 	};
 }
