@@ -1,6 +1,8 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
 import { userDescription } from './resources/user';
 import { taskDescription } from './resources/task';
+import { teamDescription } from './resources/team';
+import { timeWorkedDescription } from './resources/timeWorked';
 
 export class Runrunit implements INodeType {
 	description: INodeTypeDescription = {
@@ -40,11 +42,21 @@ export class Runrunit implements INodeType {
 						name: 'Task',
 						value: 'task',
 					},
+					{
+						name: 'Team',
+						value: 'team',
+					},
+					{
+						name: 'Time Worked',
+						value: 'timeWorked',
+					},
 				],
 				default: 'user',
-			},
-			...userDescription,
-			...taskDescription,
+				},
+				...teamDescription,
+				...timeWorkedDescription,
+				...userDescription,
+				...taskDescription,
 		],
 	};
 }
