@@ -3,6 +3,7 @@ import { userDescription } from './resources/user';
 import { taskDescription } from './resources/task';
 import { teamDescription } from './resources/team';
 import { timeWorkedDescription } from './resources/timeWorked';
+import { boardStageDescription } from './resources/boardStage';
 
 export class Runrunit implements INodeType {
 	description: INodeTypeDescription = {
@@ -46,6 +47,10 @@ export class Runrunit implements INodeType {
 						name: 'Team',
 						value: 'team',
 					},
+						{
+							name: 'Board Stages',
+							value: 'boardStage',
+						},
 					{
 						name: 'Time Worked',
 						value: 'timeWorked',
@@ -53,10 +58,11 @@ export class Runrunit implements INodeType {
 				],
 				default: 'user',
 				},
-				...teamDescription,
-				...timeWorkedDescription,
-				...userDescription,
-				...taskDescription,
+					...teamDescription,
+					...timeWorkedDescription,
+					...boardStageDescription,
+					...userDescription,
+					...taskDescription,
 		],
 	};
 }
