@@ -36,28 +36,74 @@ export const documentsDescription: INodeProperties[] = [
         value: 'download',
         action: 'Download document',
         description: 'Download document binary',
-        routing: { request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/download' } },
+        routing: {
+          request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/download', encoding: 'arraybuffer' },
+          output: {
+            postReceive: [
+              {
+                action: 'setBinaryData',
+                properties: {
+                  key: 'data',
+                },
+              },
+            ],
+          },
+        },
       },
       {
         name: 'Thumbnail',
         value: 'thumbnail',
         action: 'Get document thumbnail',
         description: 'Get document thumbnail',
-        routing: { request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/thumbnail' } },
+        routing: {
+          request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/thumbnail', encoding: 'arraybuffer' },
+          output: {
+            postReceive: [
+              {
+                  action: 'setBinaryData',
+                  properties: {
+                    key: 'data',
+                  },
+              },
+            ],
+          },
+        },
       },
       {
         name: 'Preview',
         value: 'preview',
         action: 'Get document preview',
         description: 'Get document preview',
-        routing: { request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/preview' } },
+        routing: {
+          request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/preview', encoding: 'arraybuffer' },
+          output: {
+            postReceive: [
+              {
+                  action: 'setBinaryData',
+                  properties: {
+                    key: 'data',
+                  },
+              },
+            ],
+          },
+        },
       },
       {
         name: 'Create',
         value: 'create',
         action: 'Upload document',
         description: 'Upload a document to a task (multipart/form-data)',
-        routing: { request: { method: 'POST', url: '=/tasks/{{$parameter.taskId}}/documents' } },
+        routing: {
+          request: {
+            method: 'POST',
+            url: '=/tasks/{{$parameter.taskId}}/documents',
+            headers: { 'Content-Type': 'multipart/form-data' },
+          },
+          send: {
+            type: 'body',
+            property: 'document',
+          },
+        },
       },
       {
         name: 'Mark As Uploaded',
@@ -82,6 +128,7 @@ export const documentsDescription: INodeProperties[] = [
     type: 'string',
     displayOptions: { show: { resource: ['documents'], operation: ['getAll', 'create'] } },
     default: '',
+    required: true,
     description: 'ID of the task',
   },
   {
@@ -94,12 +141,12 @@ export const documentsDescription: INodeProperties[] = [
     description: 'ID of the document',
   },
   {
-    displayName: 'File Path',
-    name: 'filePath',
+    displayName: 'Binary Property Name',
+    name: 'binaryPropertyName',
     type: 'string',
     displayOptions: { show: { resource: ['documents'], operation: ['create'] } },
-    default: '',
-    description: 'Local path to file to upload (n8n will read and send as multipart/form-data)',
+    default: 'data',
+    description: 'Name of the binary property that contains the file to upload (for example: data)',
   },
   {
     displayName: 'Document Object (JSON)',
@@ -107,12 +154,6 @@ export const documentsDescription: INodeProperties[] = [
     type: 'json',
     displayOptions: { show: { resource: ['documents'], operation: ['create'] } },
     default: '{}',
-    description: 'Optional metadata to send with upload, e.g. {"document": {"filename":"report.pdf"}}',
-    routing: {
-      send: {
-        type: 'body',
-        property: 'document',
-      },
-    },
+    description: 'Optional metadata to send with upload, e.g. {"document": {"filename":"report.pdf"}}. Metadata will be injected into the multipart request via the create operation preSend.',
   },
 ];
