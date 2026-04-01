@@ -40,12 +40,12 @@ export const documentsDescription: INodeProperties[] = [
           request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/download', encoding: 'arraybuffer' },
           output: {
             postReceive: [
-              {
+              ({
                 type: 'setBinaryData',
                 properties: {
                   key: 'data',
                 },
-              },
+              } as any),
             ],
           },
         },
@@ -59,12 +59,12 @@ export const documentsDescription: INodeProperties[] = [
           request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/thumbnail', encoding: 'arraybuffer' },
           output: {
             postReceive: [
-              {
+              ({
                   type: 'setBinaryData',
                   properties: {
                     key: 'data',
                   },
-              },
+              } as any),
             ],
           },
         },
@@ -78,12 +78,12 @@ export const documentsDescription: INodeProperties[] = [
           request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/preview', encoding: 'arraybuffer' },
           output: {
             postReceive: [
-              {
+              ({
                   type: 'setBinaryData',
                   properties: {
                     key: 'data',
                   },
-              },
+              } as any),
             ],
           },
         },
