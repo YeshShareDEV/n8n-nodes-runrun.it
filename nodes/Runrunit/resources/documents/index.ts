@@ -41,7 +41,7 @@ export const documentsDescription: INodeProperties[] = [
           output: {
             postReceive: [
               {
-                action: 'setBinaryData',
+                type: 'setBinaryData',
                 properties: {
                   key: 'data',
                 },
@@ -60,7 +60,7 @@ export const documentsDescription: INodeProperties[] = [
           output: {
             postReceive: [
               {
-                  action: 'setBinaryData',
+                  type: 'setBinaryData',
                   properties: {
                     key: 'data',
                   },
@@ -79,7 +79,7 @@ export const documentsDescription: INodeProperties[] = [
           output: {
             postReceive: [
               {
-                  action: 'setBinaryData',
+                  type: 'setBinaryData',
                   properties: {
                     key: 'data',
                   },
