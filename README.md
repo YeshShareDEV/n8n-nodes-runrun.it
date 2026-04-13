@@ -82,10 +82,42 @@ curl -g "https://runrun.it/api/v1.0/users" \
 - Criar usuário via body JSON:
 
 ```bash
-curl -X POST "https://runrun.it/api/v1.0/users" \
-	-H "App-Key: YOUR_APP_KEY" -H "User-Token: YOUR_USER_TOKEN" \
+# Exemplo: criar um gestor (is_manager=true) e tornar parceiros mútuos
+curl "https://runrun.it/api/v1.0/users" \
+	-X POST \
+	-H "App-Key: YOUR_APP_KEY" \
+	-H "User-Token: YOUR_USER_TOKEN" \
 	-H "Content-Type: application/json" \
-	-d '{"user": {"name":"Joao", "email":"joao@example.com", "role":"user"}}'
+	-d '{
+		"user": {
+			"name": "Novo Gestor Yesh",
+			"email": "gestor.teste@yesh.com.br",
+			"is_manager": true,
+			"team_ids": [435586],
+			"position": "Analista de Atendimento"
+		},
+		"make_everybody_mutual_partners": true
+	}'
+```
+
+```bash
+# Exemplo: criar um colaborador
+curl "https://runrun.it/api/v1.0/users" \
+	-X POST \
+	-H "App-Key: YOUR_APP_KEY" \
+	-H "User-Token: YOUR_USER_TOKEN" \
+	-H "Content-Type: application/json" \
+	-d '{
+		"user": {
+			"name": "Colaborador Teste",
+			"email": "colaborador.yesh@yesh.com.br",
+			"is_manager": false,
+			"is_master": false,
+			"team_ids": [435586],
+			"position": "Suporte Nível 1"
+		},
+		"make_everybody_mutual_partners": true
+	}'
 ```
 
 - Listar comentários de uma tarefa:
