@@ -108,7 +108,6 @@ export class Runrunit implements INodeType {
 						...taskDescription,
 		],
 	};
-}
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const resource = this.getNodeParameter('resource', 0) as string;
@@ -156,3 +155,5 @@ export class Runrunit implements INodeType {
 
 		throw new NodeOperationError(this.getNode(), 'This node currently only supports previewing curl for create operations.');
 	}
+
+}
