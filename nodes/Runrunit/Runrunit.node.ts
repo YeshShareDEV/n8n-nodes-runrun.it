@@ -109,7 +109,7 @@ export class Runrunit implements INodeType {
 		],
 	};
 
-	async execute(this: any): Promise<INodeExecutionData[][]> {
+	async execute(this: NodeExecuteFunctions.IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
