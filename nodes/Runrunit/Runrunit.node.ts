@@ -93,6 +93,17 @@ export class Runrunit implements INodeType {
 				],
 				default: 'user',
 				},
+				{
+					displayName: 'Mode',
+					name: 'mode',
+					type: 'options',
+					options: [
+						{ name: 'Execute request', value: 'execute' },
+						{ name: 'Preview curl', value: 'preview' },
+					],
+					default: 'execute',
+					description: 'Choose to execute the API request or only preview the curl command.',
+				},
 						...teamDescription,
 						...timeWorkedDescription,
 						...boardStageDescription,
@@ -124,6 +135,8 @@ export class Runrunit implements INodeType {
 				const appKey = creds.appKey || '';
 				const userToken = creds.userToken || '';
 
+				const mode = this.getNodeParameter('mode', 0) as string;
+
 				// get user object parameter (declared in resources/user/create.ts)
 				const userObject = this.getNodeParameter('userObject', 0) as any;
 				const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
@@ -135,6 +148,18 @@ export class Runrunit implements INodeType {
 
 				const baseURL = (((this.getNode() as any).description?.requestDefaults as any)?.baseURL) || 'https://runrun.it/api/v1.0';
 				const path = '/users';
+
+				if (mode === 'preview') {
+					const bodyString = JSON.stringify(body);
+					const escaped = bodyString.replace(/'/g, "'\"'\"'");
+					const curl = `curl --location '${baseURL}${path}' \\
+				--header 'App-Key: ${appKey}' \\
+				--header 'User-Token: ${userToken}' \\
+				--header 'Content-Type: application/json' \\
+				--data-raw '${escaped}'`;
+
+					return [[{ json: { curl } }]];
+				}
 
 				try {
 					const url = `${baseURL}${path}`;
