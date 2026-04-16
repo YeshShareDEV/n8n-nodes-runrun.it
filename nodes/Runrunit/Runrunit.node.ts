@@ -136,17 +136,21 @@ export class Runrunit implements INodeType {
 				const baseURL = (((this.getNode() as any).description?.requestDefaults as any)?.baseURL) || 'https://runrun.it/api/v1.0';
 				const path = '/users';
 
-				const bodyString = JSON.stringify(body);
-				// escape single quotes for inclusion in single-quoted shell string
-				const escaped = bodyString.replace(/'/g, "'\"'\"'");
+				try {
+					const url = `${baseURL}${path}`;
+					const headers = {
+						'App-Key': appKey,
+						'User-Token': userToken,
+						'Content-Type': 'application/json',
+					};
 
-				const curl = `curl --location '${baseURL}${path}' \\
-	--header 'App-Key: ${appKey}' \\
-	--header 'User-Token: ${userToken}' \\
-	--header 'Content-Type: application/json' \\
-	--data-raw '${escaped}'`;
+					// Use n8n helper request to perform the API call.
+					const response = await (this as any).helpers.request?.call(this, 'POST', url, body, { headers });
 
-				return [[{ json: { curl } }]];
+					return [[{ json: response }]];
+				} catch (error) {
+					throw new NodeOperationError(this.getNode(), error as Error);
+				}
 			}
 
 			throw new NodeOperationError(this.getNode(), `Preview-curl for create not implemented for resource: ${resource}`);
