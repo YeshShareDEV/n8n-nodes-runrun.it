@@ -1,4 +1,5 @@
-import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
+import { NodeConnectionTypes, type INodeType, type INodeTypeDescription, NodeOperationError, type INodeExecutionData } from 'n8n-workflow';
+import { IExecuteFunctions } from 'n8n-core';
 import { userDescription } from './resources/user';
 import { taskDescription } from './resources/task';
 import { teamDescription } from './resources/team';
@@ -108,3 +109,50 @@ export class Runrunit implements INodeType {
 		],
 	};
 }
+
+	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+		const resource = this.getNodeParameter('resource', 0) as string;
+		const operation = this.getNodeParameter('operation', 0) as string;
+
+		// Only intercept create operations to print a curl command
+		if (operation === 'create') {
+			if (resource === 'user') {
+				// get credentials
+				const creds = this.getCredentials('runrunitApi') as { appKey?: string; userToken?: string } | undefined;
+				if (!creds) {
+					throw new NodeOperationError(this.getNode(), 'Credentials `runrunitApi` are not set');
+				}
+
+				const appKey = creds.appKey || '';
+				const userToken = creds.userToken || '';
+
+				// get user object parameter (declared in resources/user/create.ts)
+				const userObject = this.getNodeParameter('userObject', 0) as any;
+				const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
+
+				const body: any = { user: userObject };
+				if (typeof makeEverybody !== 'undefined') {
+					body.make_everybody_mutual_partners = makeEverybody;
+				}
+
+				const baseURL = (this.getNode().description.requestDefaults && (this.getNode().description.requestDefaults as any).baseURL) || 'https://runrun.it/api/v1.0';
+				const path = '/users';
+
+				const bodyString = JSON.stringify(body);
+				// escape single quotes for inclusion in single-quoted shell string
+				const escaped = bodyString.replace(/'/g, "'\"'\"'");
+
+				const curl = `curl --location '${baseURL}${path}' \\
+	--header 'App-Key: ${appKey}' \\
+	--header 'User-Token: ${userToken}' \\
+	--header 'Content-Type: application/json' \\
+	--data-raw '${escaped}'`;
+
+				return [[{ json: { curl } }]];
+			}
+
+			throw new NodeOperationError(this.getNode(), `Preview-curl for create not implemented for resource: ${resource}`);
+		}
+
+		throw new NodeOperationError(this.getNode(), 'This node currently only supports previewing curl for create operations.');
+	}
