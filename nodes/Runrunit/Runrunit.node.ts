@@ -115,8 +115,8 @@ export class Runrunit implements INodeType {
 		// Only intercept create operations to print a curl command
 		if (operation === 'create') {
 			if (resource === 'user') {
-				// get credentials
-				const creds = this.getCredentials('runrunitApi') as { appKey?: string; userToken?: string } | undefined;
+				// get credentials (getCredentials is async)
+				const creds = (await this.getCredentials?.('runrunitApi')) as { appKey?: string; userToken?: string } | undefined;
 				if (!creds) {
 					throw new NodeOperationError(this.getNode(), 'Credentials `runrunitApi` are not set');
 				}
