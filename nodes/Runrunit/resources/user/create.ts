@@ -11,8 +11,8 @@ export const userCreateDescription: INodeProperties[] = [
 		name: 'userObject',
 		type: 'json',
 		displayOptions: { show: showOnlyForUserCreate },
-		default: '{"name":"Novo Gestor Yesh","email":"gestor.teste@yesh.com.br","is_manager":true,"team_ids":[435586],"position":"Analista de Atendimento"}',
-		description: 'Full user object that will be sent as the `user` payload. Example: {"name":"Joao","email":"joao@example.com","is_manager":false,"team_ids":[123],"position":"Analista"}',
+		default: '{"name":"Colaborador Teste","email":"colaborador.yesh@yesh.com.br","is_manager":false,"is_master":false,"team_ids":[435586],"position":"Suporte Nível 1"}',
+		description: 'Full user object that will be sent as the `user` payload. Fields: name, email, is_manager, is_master, team_ids, position',
 		routing: {
 			send: {
 				type: 'body',
