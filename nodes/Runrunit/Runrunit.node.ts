@@ -1,5 +1,5 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription, NodeOperationError, type INodeExecutionData } from 'n8n-workflow';
-import { IExecuteFunctions } from 'n8n-core';
+import { NodeExecuteFunctions } from 'n8n-core';
 import { userDescription } from './resources/user';
 import { taskDescription } from './resources/task';
 import { teamDescription } from './resources/team';
@@ -109,7 +109,7 @@ export class Runrunit implements INodeType {
 		],
 	};
 
-	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+	async execute(this: NodeExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
