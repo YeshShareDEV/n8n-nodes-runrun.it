@@ -1,5 +1,4 @@
-import { NodeConnectionTypes, type INodeType, type INodeTypeDescription, NodeOperationError, type INodeExecutionData } from 'n8n-workflow';
-import { NodeExecuteFunctions } from 'n8n-core';
+import { NodeConnectionTypes, type INodeType, type INodeTypeDescription, NodeOperationError, type INodeExecutionData, type IExecuteFunctions } from 'n8n-workflow';
 import { userDescription } from './resources/user';
 import { taskDescription } from './resources/task';
 import { teamDescription } from './resources/team';
@@ -109,7 +108,7 @@ export class Runrunit implements INodeType {
 		],
 	};
 
-	async execute(this: NodeExecuteFunctions.IExecuteFunctions): Promise<INodeExecutionData[][]> {
+	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
@@ -134,7 +133,7 @@ export class Runrunit implements INodeType {
 					body.make_everybody_mutual_partners = makeEverybody;
 				}
 
-				const baseURL = (this.getNode().description.requestDefaults && (this.getNode().description.requestDefaults as any).baseURL) || 'https://runrun.it/api/v1.0';
+				const baseURL = (((this.getNode() as any).description?.requestDefaults as any)?.baseURL) || 'https://runrun.it/api/v1.0';
 				const path = '/users';
 
 				const bodyString = JSON.stringify(body);
