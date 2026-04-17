@@ -164,14 +164,16 @@ export class Runrunit implements INodeType {
 				try {
 					const url = `${baseURL}${path}`;
 
-					// O helper httpRequest recebe apenas um objeto de opções
+					// Criamos uma constante para o corpo para facilitar a exibição no erro se necessário
+					const requestBody = {
+						user: userObject,
+						make_everybody_mutual_partners: !!makeEverybody,
+					};
+
 					const response = await this.helpers.httpRequest({
 						method: 'POST',
 						url: url,
-						body: {
-							user: userObject,
-							make_everybody_mutual_partners: !!makeEverybody, // Força booleano
-						},
+						body: requestBody,
 						headers: {
 							'App-Key': appKey,
 							'User-Token': userToken,
@@ -182,14 +184,27 @@ export class Runrunit implements INodeType {
 
 					return [[{ json: response }]];
 				} catch (error) {
-					throw new NodeOperationError(this.getNode(), error as Error);
+					// Extrai a mensagem de erro detalhada da API do Runrunit, se disponível
+					const apiErrorMessage = error.response?.body?.message || error.message;
+
+					// Converte o que foi enviado para string para visualização no log de erro
+					const sentData = JSON.stringify({
+						user: userObject,
+						make_everybody_mutual_partners: !!makeEverybody,
+					});
+
+					// Lança o erro com a mensagem da API + os dados que o seu node tentou enviar
+					throw new NodeOperationError(
+						this.getNode(),
+						`Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}`,
+						{ itemIndex: 0 }
+					);
 				}
+
+				throw new NodeOperationError(this.getNode(), `Preview-curl for create not implemented for resource: ${resource}`);
 			}
 
-			throw new NodeOperationError(this.getNode(), `Preview-curl for create not implemented for resource: ${resource}`);
+			throw new NodeOperationError(this.getNode(), 'This node currently only supports previewing curl for create operations.');
 		}
 
-		throw new NodeOperationError(this.getNode(), 'This node currently only supports previewing curl for create operations.');
 	}
-
-}
