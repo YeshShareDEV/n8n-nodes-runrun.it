@@ -170,7 +170,7 @@ export class Runrunit implements INodeType {
 				}
 
 				try {
-					const url = `https://runrun.it/api/v1.0${path}`;
+					const url = `https://runrun.it/api/v1.0/users`;
 					const headers = {
 						'App-Key': appKey,
 						'User-Token': userToken,
