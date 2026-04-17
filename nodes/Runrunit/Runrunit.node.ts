@@ -144,14 +144,20 @@ export class Runrunit implements INodeType {
 					});
 
 					return [[{ json: response }]];
-				} catch (error) {
-					const apiErrorMessage =
-						error && error.response && error.response.body && error.response.body.message
-							? error.response.body.message
-							: error.message;
+				} catch (error: any) {
+					const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
 					const sentData = JSON.stringify(requestBody);
+					let apiResponseBody = undefined;
+					try {
+						apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
+					} catch (e) {
+						apiResponseBody = String(error?.response?.body);
+					}
 
-					throw new NodeOperationError(this.getNode(), `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}`, { itemIndex: 0 });
+					const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` +
+						(apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
+
+					throw new NodeOperationError(this.getNode(), finalMessage, { itemIndex: 0 });
 				}
 			}
 			throw new NodeOperationError(this.getNode(), `Create operation not yet implemented for resource: ${resource}`);
