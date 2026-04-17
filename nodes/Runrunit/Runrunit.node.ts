@@ -92,30 +92,30 @@ export class Runrunit implements INodeType {
 					},
 				],
 				default: 'user',
-				},
-				{
-					displayName: 'Mode',
-					name: 'mode',
-					type: 'options',
-					options: [
-						{ name: 'Execute request', value: 'execute' },
-						{ name: 'Preview curl', value: 'preview' },
-					],
-					default: 'execute',
-					description: 'Choose to execute the API request or only preview the curl command.',
-				},
-						...teamDescription,
-						...timeWorkedDescription,
-						...boardStageDescription,
-						...clientsDescription,
-						...commentsDescription,
-						...documentsDescription,
-						...checklistsDescription,
-						...checklistItemsDescription,
-						...descendantsDescription,
-						...descriptionsDescription,
-						...userDescription,
-						...taskDescription,
+			},
+			{
+				displayName: 'Mode',
+				name: 'mode',
+				type: 'options',
+				options: [
+					{ name: 'Execute request', value: 'execute' },
+					{ name: 'Preview curl', value: 'preview' },
+				],
+				default: 'execute',
+				description: 'Choose to execute the API request or only preview the curl command.',
+			},
+			...teamDescription,
+			...timeWorkedDescription,
+			...boardStageDescription,
+			...clientsDescription,
+			...commentsDescription,
+			...documentsDescription,
+			...checklistsDescription,
+			...checklistItemsDescription,
+			...descendantsDescription,
+			...descriptionsDescription,
+			...userDescription,
+			...taskDescription,
 		],
 	};
 
@@ -138,15 +138,7 @@ export class Runrunit implements INodeType {
 				const mode = this.getNodeParameter('mode', 0) as string;
 
 				// get user object parameter (declared in resources/user/create.ts)
-				let userObject = this.getNodeParameter('userObject', 0) as any;
-				// Rule 1: if userObject comes as a string, parse it to an object
-				if (typeof userObject === 'string') {
-					try {
-						userObject = JSON.parse(userObject);
-					} catch (err) {
-						throw new NodeOperationError(this.getNode(), 'Invalid JSON provided in User Object');
-					}
-				}
+				const userObject = this.getNodeParameter('userObject', 0) as any;
 				const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
 
 				const body: any = { user: userObject };
@@ -154,7 +146,7 @@ export class Runrunit implements INodeType {
 					body.make_everybody_mutual_partners = makeEverybody;
 				}
 
-				const baseURL = 'https://runrun.it/api/v1.0';
+				const baseURL = (((this.getNode() as any).description?.requestDefaults as any)?.baseURL) || 'https://runrun.it/api/v1.0';
 				const path = '/users';
 
 				if (mode === 'preview') {
@@ -170,16 +162,20 @@ export class Runrunit implements INodeType {
 				}
 
 				try {
-					const url = `https://runrun.it/api/v1.0/users`;
-					const headers = {
-						'App-Key': appKey,
-						'User-Token': userToken,
-						'Content-Type': 'application/json',
-					};
+					const url = `${baseURL}${path}`;
 
-					// Rule 2 & 3: pass the plain object `body` (don't stringify) and set `json: true`
-					// so the helper sets Content-Type and stringifies the body correctly.
-					const response = await (this as any).helpers.httpRequest(this, 'POST', url, body, { headers, json: true });
+					// O helper httpRequest recebe apenas um objeto de opções
+					const response = await this.helpers.httpRequest({
+						method: 'POST',
+						url: url,
+						body: body,
+						headers: {
+							'App-Key': appKey,
+							'User-Token': userToken,
+							'Content-Type': 'application/json',
+						},
+						json: true,
+					});
 
 					return [[{ json: response }]];
 				} catch (error) {
