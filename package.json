@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-runrunit",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "description": "n8n community nodes for Runrun.it (Runrunit) integrations",
   "license": "MIT",
   "homepage": "",
