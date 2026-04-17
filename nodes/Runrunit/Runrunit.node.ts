@@ -42,54 +42,18 @@ export class Runrunit implements INodeType {
 				type: 'options',
 				noDataExpression: true,
 				options: [
-					{
-						name: 'User',
-						value: 'user',
-					},
-					{
-						name: 'Task',
-						value: 'task',
-					},
-					{
-						name: 'Team',
-						value: 'team',
-					},
-					{
-						name: 'Board Stages',
-						value: 'boardStage',
-					},
-					{
-						name: 'Comments',
-						value: 'comments',
-					},
-					{
-						name: 'Documents',
-						value: 'documents',
-					},
-					{
-						name: 'Checklists',
-						value: 'checklists',
-					},
-					{
-						name: 'Checklist Items',
-						value: 'checklistItems',
-					},
-					{
-						name: 'Clients',
-						value: 'clients',
-					},
-					{
-						name: 'Descendants',
-						value: 'descendants',
-					},
-					{
-						name: 'Descriptions',
-						value: 'descriptions',
-					},
-					{
-						name: 'Time Worked',
-						value: 'timeWorked',
-					},
+					{ name: 'User', value: 'user' },
+					{ name: 'Task', value: 'task' },
+					{ name: 'Team', value: 'team' },
+					{ name: 'Board Stages', value: 'boardStage' },
+					{ name: 'Comments', value: 'comments' },
+					{ name: 'Documents', value: 'documents' },
+					{ name: 'Checklists', value: 'checklists' },
+					{ name: 'Checklist Items', value: 'checklistItems' },
+					{ name: 'Clients', value: 'clients' },
+					{ name: 'Descendants', value: 'descendants' },
+					{ name: 'Descriptions', value: 'descriptions' },
+					{ name: 'Time Worked', value: 'timeWorked' },
 				],
 				default: 'user',
 			},
@@ -123,10 +87,8 @@ export class Runrunit implements INodeType {
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
-		// Only intercept create operations to print a curl command
 		if (operation === 'create') {
 			if (resource === 'user') {
-				// get credentials (getCredentials is async)
 				const creds = (await this.getCredentials?.('runrunitApi')) as { appKey?: string; userToken?: string } | undefined;
 				if (!creds) {
 					throw new NodeOperationError(this.getNode(), 'Credentials `runrunitApi` are not set');
@@ -134,23 +96,20 @@ export class Runrunit implements INodeType {
 
 				const appKey = creds.appKey || '';
 				const userToken = creds.userToken || '';
-
 				const mode = this.getNodeParameter('mode', 0) as string;
-
-				// get user object parameter (declared in resources/user/create.ts)
 				const userObject = this.getNodeParameter('userObject', 0) as any;
 				const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
 
-				const body: any = { user: userObject };
-				if (typeof makeEverybody !== 'undefined') {
-					body.make_everybody_mutual_partners = makeEverybody;
-				}
-
-				const baseURL = (((this.getNode() as any).description?.requestDefaults as any)?.baseURL) || 'https://runrun.it/api/v1.0';
+				const baseURL = 'https://runrun.it/api/v1.0';
 				const path = '/users';
 
+				const requestBody = {
+					user: userObject,
+					make_everybody_mutual_partners: !!makeEverybody,
+				};
+
 				if (mode === 'preview') {
-					const bodyString = JSON.stringify(body);
+					const bodyString = JSON.stringify(requestBody);
 					const escaped = bodyString.replace(/'/g, "'\"'\"'");
 					const curl = `curl --location '${baseURL}${path}' \\
 				--header 'App-Key: ${appKey}' \\
@@ -162,17 +121,9 @@ export class Runrunit implements INodeType {
 				}
 
 				try {
-					const url = `${baseURL}${path}`;
-
-					// Criamos uma constante para o corpo para facilitar a exibição no erro se necessário
-					const requestBody = {
-						user: userObject,
-						make_everybody_mutual_partners: !!makeEverybody,
-					};
-
 					const response = await this.helpers.httpRequest({
 						method: 'POST',
-						url: url,
+						url: `${baseURL}${path}`,
 						body: requestBody,
 						headers: {
 							'App-Key': appKey,
@@ -184,27 +135,18 @@ export class Runrunit implements INodeType {
 
 					return [[{ json: response }]];
 				} catch (error) {
-					// Extrai a mensagem de erro detalhada da API do Runrunit, se disponível
 					const apiErrorMessage = error.response?.body?.message || error.message;
+					const sentData = JSON.stringify(requestBody);
 
-					// Converte o que foi enviado para string para visualização no log de erro
-					const sentData = JSON.stringify({
-						user: userObject,
-						make_everybody_mutual_partners: !!makeEverybody,
-					});
-
-					// Lança o erro com a mensagem da API + os dados que o seu node tentou enviar
 					throw new NodeOperationError(
 						this.getNode(),
 						`Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}`,
 						{ itemIndex: 0 }
 					);
 				}
-
-				throw new NodeOperationError(this.getNode(), `Preview-curl for create not implemented for resource: ${resource}`);
 			}
-
-			throw new NodeOperationError(this.getNode(), 'This node currently only supports previewing curl for create operations.');
+			throw new NodeOperationError(this.getNode(), `Create operation not yet implemented for resource: ${resource}`);
 		}
-
+		throw new NodeOperationError(this.getNode(), 'This node currently only supports create operations.');
 	}
+}
