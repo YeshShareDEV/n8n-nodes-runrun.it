@@ -154,7 +154,7 @@ export class Runrunit implements INodeType {
 					body.make_everybody_mutual_partners = makeEverybody;
 				}
 
-				const baseURL = (((this.getNode() as any).description?.requestDefaults as any)?.baseURL) || 'https://runrun.it/api/v1.0';
+				const baseURL = 'https://runrun.it/api/v1.0';
 				const path = '/users';
 
 				if (mode === 'preview') {
