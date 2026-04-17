@@ -179,7 +179,7 @@ export class Runrunit implements INodeType {
 
 					// Rule 2 & 3: pass the plain object `body` (don't stringify) and set `json: true`
 					// so the helper sets Content-Type and stringifies the body correctly.
-					const response = await (this as any).helpers.request?.call(this, 'POST', url, body, { headers, json: true });
+					const response = await (this as any).helpers.httpRequest(this, 'POST', url, body, { headers, json: true });
 
 					return [[{ json: response }]];
 				} catch (error) {
