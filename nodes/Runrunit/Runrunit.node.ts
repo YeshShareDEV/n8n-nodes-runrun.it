@@ -138,7 +138,15 @@ export class Runrunit implements INodeType {
 				const mode = this.getNodeParameter('mode', 0) as string;
 
 				// get user object parameter (declared in resources/user/create.ts)
-				const userObject = this.getNodeParameter('userObject', 0) as any;
+				let userObject = this.getNodeParameter('userObject', 0) as any;
+				// Rule 1: if userObject comes as a string, parse it to an object
+				if (typeof userObject === 'string') {
+					try {
+						userObject = JSON.parse(userObject);
+					} catch (err) {
+						throw new NodeOperationError(this.getNode(), 'Invalid JSON provided in User Object');
+					}
+				}
 				const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
 
 				const body: any = { user: userObject };
@@ -169,8 +177,9 @@ export class Runrunit implements INodeType {
 						'Content-Type': 'application/json',
 					};
 
-					// Use n8n helper request to perform the API call.
-					const response = await (this as any).helpers.request?.call(this, 'POST', url, body, { headers });
+					// Rule 2 & 3: pass the plain object `body` (don't stringify) and set `json: true`
+					// so the helper sets Content-Type and stringifies the body correctly.
+					const response = await (this as any).helpers.request?.call(this, 'POST', url, body, { headers, json: true });
 
 					return [[{ json: response }]];
 				} catch (error) {
