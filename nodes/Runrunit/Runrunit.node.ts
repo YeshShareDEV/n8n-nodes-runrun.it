@@ -103,8 +103,18 @@ export class Runrunit implements INodeType {
 				const baseURL = 'https://runrun.it/api/v1.0';
 				const path = '/users';
 
+				// Desserialização de segurança: garantir que `userObject` seja um objeto
+				let userParsed = userObject;
+				if (typeof userObject === 'string') {
+					try {
+						userParsed = JSON.parse(userObject);
+					} catch (e) {
+						throw new NodeOperationError(this.getNode(), 'userObject inválido');
+					}
+				}
+
 				const requestBody = {
-					user: userObject,
+					user: userParsed,
 					make_everybody_mutual_partners: !!makeEverybody,
 				};
 
@@ -135,14 +145,13 @@ export class Runrunit implements INodeType {
 
 					return [[{ json: response }]];
 				} catch (error) {
-					const apiErrorMessage = error.response?.body?.message || error.message;
+					const apiErrorMessage =
+						error && error.response && error.response.body && error.response.body.message
+							? error.response.body.message
+							: error.message;
 					const sentData = JSON.stringify(requestBody);
 
-					throw new NodeOperationError(
-						this.getNode(),
-						`Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}`,
-						{ itemIndex: 0 }
-					);
+					throw new NodeOperationError(this.getNode(), `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}`, { itemIndex: 0 });
 				}
 			}
 			throw new NodeOperationError(this.getNode(), `Create operation not yet implemented for resource: ${resource}`);
