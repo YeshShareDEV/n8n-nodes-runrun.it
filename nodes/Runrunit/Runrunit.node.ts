@@ -168,7 +168,10 @@ export class Runrunit implements INodeType {
 					const response = await this.helpers.httpRequest({
 						method: 'POST',
 						url: url,
-						body: body,
+						body: {
+							user: userObject,
+							make_everybody_mutual_partners: !!makeEverybody, // Força booleano
+						},
 						headers: {
 							'App-Key': appKey,
 							'User-Token': userToken,
