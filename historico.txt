@@ -1,0 +1,185 @@
+commit 2a7efeff14f4663e749aa853ce304ba9ee2264d1
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Mon Apr 20 12:51:55 2026 -0300
+
+    chore: remove legacy inline create/update, delegate to handlers
+
+commit b7eaa499c07b1264fa2ac60bc463d8376c51665c
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Mon Apr 20 12:36:43 2026 -0300
+
+    refactor: extract create/update handlers from execute
+
+commit 2c7f9077ec9d63983fc5320108559fc0567e18a3
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Mon Apr 20 12:24:02 2026 -0300
+
+    fix: corrigir fluxo create/update em Runrunit.node.ts
+
+commit 63954458c76e6d19e314b1c0119cd8d4cb9dced4
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 14:52:30 2026 -0300
+
+    ajuste do post para os outros recursos
+
+commit 460f1625034baf4a741ad363dd40aac7799e548f
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 14:22:44 2026 -0300
+
+    ajuste do requisição post
+
+commit 38f5e3bef7f3f33cb24b74828fcff042a072d742
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 14:12:52 2026 -0300
+
+    ajuste do requisição post
+
+commit e8791352fef6a5ccde7736067271e925f5dfbebc
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 12:50:21 2026 -0300
+
+    ajuste do requisição post
+
+commit 6b109af5197d8438c6cc646f7951491bc6f5ec00
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 12:44:23 2026 -0300
+
+    ajuste do requisição post
+
+commit aff9b1939d597a88c3641ddbac056b0f7d8df81e
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 12:35:17 2026 -0300
+
+    ajuste de requisicao
+
+commit 1f429e8a356f1f3d6567fed20ab47434ceb0d8c6
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 12:20:13 2026 -0300
+
+    ajuste de requisicao
+
+commit 8e222bfff03a0148743ba6585b56ad020dc54bf5
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 10:59:40 2026 -0300
+
+    ajuate baseUrl na rquisição
+
+commit 98a4eb6d1740f47d3adc543bf945cc34ff3975f8
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 10:33:23 2026 -0300
+
+    ajuate baseUrl na rquisição
+
+commit 24b374ad86bf850d3883a522448eeddec883fd6d
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 10:04:07 2026 -0300
+
+    ajuate baseUrl na rquisição
+
+commit 6bfeb701fde066eb5835cc8572315fcfdd577e74
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 09:54:32 2026 -0300
+
+    ajuate baseUrl na rquisição
+
+commit edbf72f40815eb0786c6bf1e94f744be6edde592
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Fri Apr 17 09:31:58 2026 -0300
+
+    fix(runrunit): parse userObject string; send object body and use json:true in helpers.request
+
+commit 08b871d55da6519bcf9b6f3fcd51d7fb6eefbb6e
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 17:50:11 2026 -0300
+
+    feat(runrunit): add Mode toggle to preview curl or execute POST for create user
+
+commit cf8f4ff8644f7478b78b4c2ae6b095bca0a5d82f
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 17:43:28 2026 -0300
+
+    feat(runrunit): perform real POST request for create user instead of returning curl
+
+commit e6286cd4317c1bedebb5e3d90c66f919d626d16a
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 17:35:10 2026 -0300
+
+    fix(auth): await getCredentials to retrieve decrypted App-Key/User-Token
+
+commit 24e352e53045eb92c223db3d34fd0e2870f4bd00
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 17:18:32 2026 -0300
+
+    fix(types): avoid INode.description access error by casting getNode() to any
+
+commit 5ea2831509ae44663ac4b4055dac3bcc1aa2a8b5
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 16:59:54 2026 -0300
+
+    fix(types): use NodeExecuteFunctions.IExecuteFunctions for execute this
+
+commit 1a3ddd0f15ad263773595ec3e2f2c814c2c054aa
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 16:55:31 2026 -0300
+
+    fix(types): relax execute(this) type to any to avoid namespace type error
+
+commit 728f6f109481c3b6518eb28ca02a6f4282ea2df3
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 16:54:13 2026 -0300
+
+    fix(types): use NodeExecuteFunctions from n8n-core
+
+commit 0d711fc196eab173f51aae319cb00742e174d4bd
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 16:49:22 2026 -0300
+
+    fix(runrunit): place execute inside Runrunit class to fix syntax
+
+commit edb36bbe756944dd49613a95ecb2302481a7ad04
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Thu Apr 16 16:47:36 2026 -0300
+
+    feat(runrunit): preview curl for create user instead of sending request
+
+commit 24ab1628e26af3db9ef59e2f60741be9405265c4
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Tue Mar 31 15:28:22 2026 -0300
+
+    feat: register new resources in Runrunit node (comments, documents, checklists, checklistItems, clients, descendants, descriptions)
+
+commit 4fea2f57849162381ff17dbe5d17f14e6fe5cd42
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Tue Mar 31 14:32:07 2026 -0300
+
+    feat: add Runrunit resources (comments, documents, checklists, clients, descendants, descriptions) and update README
+
+commit f3f1bf102086ae6bf2c9f4ae2716c5b578533947
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Tue Mar 31 11:21:46 2026 -0300
+
+    Add Team and Time Worked resources; register in Runrunit.node.ts
+
+commit 55e5ce2b0ab8657397b99f05cc92b64ca47e344b
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Mon Mar 30 16:27:25 2026 -0300
+
+    chore(release): bump version to 0.3.2
+
+commit ed0e188f5ecb3b5149d6d1ed6988f2d70aaf5daf
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Mon Mar 30 16:19:09 2026 -0300
+
+    ajaute endPoint user e task
+
+commit 778be29b74253b54874b251c14b9f8e1a06fda02
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Mon Mar 30 15:40:54 2026 -0300
+
+    ajuste credenciais
+
+commit 02d9c340d34b49e09f889b9c633abed6ac859c6f
+Author: Marcos Campos <marcos@yesh.com.br>
+Date:   Mon Mar 30 12:28:24 2026 -0300
+
+    feat: initial structure for Runrun.it nodes

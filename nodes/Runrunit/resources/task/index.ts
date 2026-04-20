@@ -58,6 +58,29 @@ const taskGetManyDescription: INodeProperties[] = [
 			},
 		},
 	},
+	{
+		displayName: 'Search Term',
+		name: 'search_term',
+		type: 'string',
+		displayOptions: { show: showOnlyForTasks },
+		default: '',
+		description: 'Search term to filter tasks',
+		routing: { send: { type: 'query', property: 'search_term' } },
+	},
+	{
+		displayName: 'Page',
+		name: 'page',
+		type: 'number',
+		displayOptions: {
+			show: {
+				...showOnlyForTasks,
+				returnAll: [false],
+			},
+		},
+		default: 1,
+		description: 'Page number for pagination (1-based)',
+		routing: { send: { type: 'query', property: 'page' } },
+	},
 ];
 
 const showOnlyForTaskWithId = {

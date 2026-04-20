@@ -53,7 +53,10 @@ export const userGetManyDescription: INodeProperties[] = [
 		name: 'page',
 		type: 'number',
 		displayOptions: {
-			show: showOnlyForUserGetMany,
+			show: {
+				...showOnlyForUserGetMany,
+				returnAll: [false],
+			},
 		},
 		default: 1,
 		description: 'Page number for pagination (1-based)',

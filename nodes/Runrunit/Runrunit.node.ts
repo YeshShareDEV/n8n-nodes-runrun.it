@@ -87,58 +87,75 @@ export class Runrunit implements INodeType {
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
-		const creds = (await this.getCredentials?.('runrunitApi')) as { appKey?: string; userToken?: string } | undefined;
-		if (!creds) {
-			throw new NodeOperationError(this.getNode(), 'Credentials `runrunitApi` are not set');
-		}
+		if (operation === 'create') return await Runrunit.handleCreate(this, resource);
+		if (operation === 'update') return await Runrunit.handleUpdate(this, resource);
+		if (operation === 'get') return await Runrunit.handleGet(this, resource);
+		if (operation === 'getAll') return await Runrunit.handleGetAll(this, resource);
 
-		const appKey = creds.appKey || '';
-		const userToken = creds.userToken || '';
-		const mode = this.getNodeParameter('mode', 0) as string;
-		const baseURL = 'https://runrun.it/api/v1.0';
-
-		// Delegate to the extracted handlers for create/update
-		if (operation === 'create') {
-			return await Runrunit.handleCreate(this, resource, mode, baseURL, appKey, userToken);
-		}
-
-		if (operation === 'update') {
-			return await Runrunit.handleUpdate(this, resource, mode, baseURL, appKey, userToken);
-		}
-
-		if (operation === 'get') {
-			return await Runrunit.handleGet(this, resource, mode, baseURL, appKey, userToken);
-		}
-
-		if (operation === 'getAll') {
-			return await Runrunit.handleGetAll(this, resource, mode, baseURL, appKey, userToken);
-		}
-
-		throw new NodeOperationError(this.getNode(), 'This node currently only supports create/update operations.');
+		throw new NodeOperationError(this.getNode(), 'This node currently only supports create/update/get/getAll operations.');
 	}
 
-	// --- Handlers inserted to organize execute ---
+	private static async makeRequest(
+		instance: IExecuteFunctions,
+		method: string,
+		path: string,
+		body: any = {},
+		qs: Record<string, any> = {},
+	): Promise<any> {
+		return (async () => {
+			const creds = (await instance.getCredentials?.('runrunitApi')) as { appKey?: string; userToken?: string } | undefined;
+			if (!creds) throw new NodeOperationError(instance.getNode(), 'Credentials `runrunitApi` are not set');
+
+			const appKey = creds.appKey || '';
+			const userToken = creds.userToken || '';
+			const baseURL = 'https://runrun.it/api/v1.0';
+			const mode = instance.getNodeParameter('mode', 0) as string;
+
+			let url = `${baseURL}${path}`;
+			if (qs && Object.keys(qs).length) {
+				const params = new URLSearchParams();
+				for (const k of Object.keys(qs)) params.append(k, String(qs[k]));
+				url += `?${params.toString()}`;
+			}
+
+			if (mode === 'preview') {
+				if (method.toUpperCase() === 'GET') {
+					return { curl: `curl --location '${url}' \\n					--header 'App-Key: ${appKey}' \\n					--header 'User-Token: ${userToken}'` };
+				}
+
+				const bodyString = JSON.stringify(body);
+				const escaped = bodyString.replace(/'/g, "'\"'\"'");
+				return { curl: `curl --location '${url}' \\n				--header 'App-Key: ${appKey}' \\n				--header 'User-Token: ${userToken}' \\n				--header 'Content-Type: application/json' \\n				--data-raw '${escaped}'` };
+			}
+
+			try {
+				const opts: any = { method, url, headers: { 'App-Key': appKey, 'User-Token': userToken }, json: true };
+				if (method.toUpperCase() !== 'GET') {
+					opts.body = body;
+					opts.headers['Content-Type'] = 'application/json';
+				}
+				const response = await instance.helpers.httpRequest(opts);
+				return response;
+			} catch (error: any) {
+				const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
+				const sentData = method.toUpperCase() === 'GET' ? JSON.stringify(qs) : JSON.stringify(body);
+				let apiResponseBody = undefined;
+				try { apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined; } catch (e) { apiResponseBody = String(error?.response?.body); }
+				const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` + (apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
+				throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
+			}
+		})();
+	}
 
 	private static parseJsonInput(instance: IExecuteFunctions, paramName: string) {
 		const val = instance.getNodeParameter(paramName, 0) as any;
 		if (typeof val === 'string') {
-			try {
-				return JSON.parse(val);
-			} catch (e) {
-				throw new NodeOperationError(instance.getNode(), `${paramName} inválido`);
-			}
+			try { return JSON.parse(val); } catch (e) { throw new NodeOperationError(instance.getNode(), `${paramName} inválido`); }
 		}
 		return val;
 	}
 
-	private static async handleCreate(
-		instance: IExecuteFunctions,
-		resource: string,
-		mode: string,
-		baseURL: string,
-		appKey: string,
-		userToken: string,
-	): Promise<INodeExecutionData[][]> {
+	private static async handleCreate(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
 		let path = '';
 		let requestBody: any = {};
 
@@ -210,57 +227,12 @@ export class Runrunit implements INodeType {
 			}
 		}
 
-		if (mode === 'preview') {
-			const bodyString = JSON.stringify(requestBody);
-			const escaped = bodyString.replace(/'/g, "'\"'\"'");
-			const curl = `curl --location '${baseURL}${path}' \\
-				--header 'App-Key: ${appKey}' \\
-				--header 'User-Token: ${userToken}' \\
-				--header 'Content-Type: application/json' \\
-				--data-raw '${escaped}'`;
-
-			return [[{ json: { curl } }]];
-		}
-
-		try {
-			const response = await instance.helpers.httpRequest({
-				method: 'POST',
-				url: `${baseURL}${path}`,
-				body: requestBody,
-				headers: {
-					'App-Key': appKey,
-					'User-Token': userToken,
-					'Content-Type': 'application/json',
-				},
-				json: true,
-			});
-
-			return [[{ json: response }]];
-		} catch (error: any) {
-			const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
-			const sentData = JSON.stringify(requestBody);
-			let apiResponseBody = undefined;
-			try {
-				apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
-			} catch (e) {
-				apiResponseBody = String(error?.response?.body);
-			}
-
-			const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` +
-				(apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
-
-			throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
-		}
+		const resp = await Runrunit.makeRequest(instance, 'POST', path, requestBody);
+		if (resp && resp.curl) return [[{ json: resp }]];
+		return [[{ json: resp }]];
 	}
 
-	private static async handleUpdate(
-		instance: IExecuteFunctions,
-		resource: string,
-		mode: string,
-		baseURL: string,
-		appKey: string,
-		userToken: string,
-	): Promise<INodeExecutionData[][]> {
+	private static async handleUpdate(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
 		let path = '';
 		let requestBody: any = {};
 
@@ -335,59 +307,14 @@ export class Runrunit implements INodeType {
 			}
 		}
 
-		if (mode === 'preview') {
-			const bodyString = JSON.stringify(requestBody);
-			const escaped = bodyString.replace(/'/g, "'\"'\"'");
-			const curl = `curl --location '${baseURL}${path}' \\
-				--header 'App-Key: ${appKey}' \\
-				--header 'User-Token: ${userToken}' \\
-				--header 'Content-Type: application/json' \\
-				--data-raw '${escaped}'`;
-
-			return [[{ json: { curl } }]];
-		}
-
-		try {
-			const response = await instance.helpers.httpRequest({
-				method: 'PUT',
-				url: `${baseURL}${path}`,
-				body: requestBody,
-				headers: {
-					'App-Key': appKey,
-					'User-Token': userToken,
-					'Content-Type': 'application/json',
-				},
-				json: true,
-			});
-
-			return [[{ json: response }]];
-		} catch (error: any) {
-			const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
-			const sentData = JSON.stringify(requestBody);
-			let apiResponseBody = undefined;
-			try {
-				apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
-			} catch (e) {
-				apiResponseBody = String(error?.response?.body);
-			}
-
-			const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` +
-				(apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
-
-			throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
-		}
+		const resp = await Runrunit.makeRequest(instance, 'PUT', path, requestBody);
+		if (resp && resp.curl) return [[{ json: resp }]];
+		return [[{ json: resp }]];
 	}
 
-	private static async handleGet(
-		instance: IExecuteFunctions,
-		resource: string,
-		mode: string,
-		baseURL: string,
-		appKey: string,
-		userToken: string,
-	): Promise<INodeExecutionData[][]> {
+	private static async handleGet(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
 		let path = '';
-		let qsObj: Record<string, any> = {};
+		const qsObj: Record<string, any> = {};
 
 		switch (resource) {
 			case 'user': {
@@ -445,63 +372,30 @@ export class Runrunit implements INodeType {
 			}
 		}
 
-		let url = `${baseURL}${path}`;
-		if (Object.keys(qsObj).length) {
-			const params = new URLSearchParams();
-			for (const k of Object.keys(qsObj)) params.append(k, String(qsObj[k]));
-			url += `?${params.toString()}`;
-		}
-
-		if (mode === 'preview') {
-			const curl = `curl --location '${url}' \\n+				--header 'App-Key: ${appKey}' \\n+				--header 'User-Token: ${userToken}'`;
-			return [[{ json: { curl } }]];
-		}
-
-		try {
-			const response = await instance.helpers.httpRequest({
-				method: 'GET',
-				url,
-				headers: {
-					'App-Key': appKey,
-					'User-Token': userToken,
-				},
-				json: true,
-			});
-
-			return [[{ json: response }]];
-		} catch (error: any) {
-			const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
-			let apiResponseBody = undefined;
-			try {
-				apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
-			} catch (e) {
-				apiResponseBody = String(error?.response?.body);
-			}
-
-			const finalMessage = `Erro Runrunit: "${apiErrorMessage}"` + (apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
-			throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
-		}
+		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qsObj);
+		if (resp && resp.curl) return [[{ json: resp }]];
+		return [[{ json: resp }]];
 	}
 
-	private static async handleGetAll(
-		instance: IExecuteFunctions,
-		resource: string,
-		mode: string,
-		baseURL: string,
-		appKey: string,
-		userToken: string,
-	): Promise<INodeExecutionData[][]> {
+	private static async handleGetAll(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
 		let path = '';
 		const qs: Record<string, any> = {};
+
+		// Global pagination handling
+		const returnAll = instance.getNodeParameter('returnAll', 0) as boolean | undefined;
+		if (returnAll) {
+			qs.limit = 99999;
+		} else {
+			const limit = instance.getNodeParameter('limit', 0) as number | undefined;
+			const page = instance.getNodeParameter('page', 0) as number | undefined;
+			if (typeof limit !== 'undefined') qs.limit = limit;
+			if (typeof page !== 'undefined') qs.page = page;
+		}
 
 		switch (resource) {
 			case 'user': {
 				path = '/users';
-				const limit = instance.getNodeParameter('limit', 0) as number | undefined;
-				const page = instance.getNodeParameter('page', 0) as number | undefined;
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
-				if (limit) qs.limit = limit;
-				if (page) qs.page = page;
 				if (search) qs.search_term = search;
 				break;
 			}
@@ -511,6 +405,9 @@ export class Runrunit implements INodeType {
 			}
 			case 'task': {
 				path = '/tasks';
+				// support searching tasks as well
+				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
+				if (search) qs.search_term = search;
 				break;
 			}
 			case 'comments': {
@@ -547,44 +444,9 @@ export class Runrunit implements INodeType {
 			}
 		}
 
-		let url = `${baseURL}${path}`;
-		if (Object.keys(qs).length) {
-			const params = new URLSearchParams();
-			for (const k of Object.keys(qs)) params.append(k, String(qs[k]));
-			url += `?${params.toString()}`;
-		}
-
-		if (mode === 'preview') {
-			const curl = `curl --location '${url}' \\
-				--header 'App-Key: ${appKey}' \\
-				--header 'User-Token: ${userToken}'`;
-			return [[{ json: { curl } }]];
-		}
-
-		try {
-			const response = await instance.helpers.httpRequest({
-				method: 'GET',
-				url,
-				headers: {
-					'App-Key': appKey,
-					'User-Token': userToken,
-				},
-				json: true,
-			});
-
-			return [[{ json: response }]];
-		} catch (error: any) {
-			const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
-			let apiResponseBody = undefined;
-			try {
-				apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
-			} catch (e) {
-				apiResponseBody = String(error?.response?.body);
-			}
-
-			const finalMessage = `Erro Runrunit: "${apiErrorMessage}"` + (apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
-			throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
-		}
+		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
+		if (resp && resp.curl) return [[{ json: resp }]];
+		return [[{ json: resp }]];
 	}
 
 }
