@@ -87,143 +87,257 @@ export class Runrunit implements INodeType {
 		const resource = this.getNodeParameter('resource', 0) as string;
 		const operation = this.getNodeParameter('operation', 0) as string;
 
-			if (operation === 'create') {
-				const creds = (await this.getCredentials?.('runrunitApi')) as { appKey?: string; userToken?: string } | undefined;
-				if (!creds) {
-					throw new NodeOperationError(this.getNode(), 'Credentials `runrunitApi` are not set');
+		const creds = (await this.getCredentials?.('runrunitApi')) as { appKey?: string; userToken?: string } | undefined;
+		if (!creds) {
+			throw new NodeOperationError(this.getNode(), 'Credentials `runrunitApi` are not set');
+		}
+
+		const appKey = creds.appKey || '';
+		const userToken = creds.userToken || '';
+		const mode = this.getNodeParameter('mode', 0) as string;
+		const baseURL = 'https://runrun.it/api/v1.0';
+
+		// Helper to parse JSON inputs safely
+		const parseJsonInput = (paramName: string) => {
+			const val = this.getNodeParameter(paramName, 0) as any;
+			if (typeof val === 'string') {
+				try {
+					return JSON.parse(val);
+				} catch (e) {
+					throw new NodeOperationError(this.getNode(), `${paramName} inválido`);
 				}
+			}
+			return val;
+		};
 
-				const appKey = creds.appKey || '';
-				const userToken = creds.userToken || '';
-				const mode = this.getNodeParameter('mode', 0) as string;
-				const baseURL = 'https://runrun.it/api/v1.0';
+		let path = '';
+		let requestBody: any = {};
 
-				// Helper to parse JSON inputs safely
-				const parseJsonInput = (paramName: string) => {
-					const val = this.getNodeParameter(paramName, 0) as any;
-					if (typeof val === 'string') {
-						try {
-							return JSON.parse(val);
-						} catch (e) {
-							throw new NodeOperationError(this.getNode(), `${paramName} inválido`);
-						}
-					}
-					return val;
-				};
-
-				let path = '';
-				let requestBody: any = {};
-
-				switch (resource) {
-					case 'user': {
-						const userParsed = parseJsonInput('userObject');
-						const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
-						path = '/users';
-						requestBody = { user: userParsed, make_everybody_mutual_partners: !!makeEverybody };
-						break;
-					}
-					case 'clients': {
-						const clientParsed = parseJsonInput('clientObject');
-						path = '/clients';
-						requestBody = { client: clientParsed };
-						break;
-					}
-					case 'checklists': {
-						const taskId = this.getNodeParameter('taskId', 0) as string;
-						const checklistParsed = parseJsonInput('checklistObject');
-						path = `/tasks/${taskId}/checklist`;
-						requestBody = { checklist: checklistParsed };
-						break;
-					}
-					case 'boardStage': {
-						const boardId = this.getNodeParameter('boardId', 0) as string;
-						const stageParsed = parseJsonInput('stageObject');
-						path = `/boards/${boardId}/stages`;
-						requestBody = { stage: stageParsed };
-						break;
-					}
-					case 'descendants': {
-						const taskId = this.getNodeParameter('taskId', 0) as string;
-						const descendantParsed = parseJsonInput('descendantObject');
-						path = `/tasks/${taskId}/descendants`;
-						requestBody = { task: descendantParsed };
-						break;
-					}
-					case 'comments': {
-						const commentParsed = parseJsonInput('commentObject');
-						path = '/comments';
-						requestBody = { comment: commentParsed };
-						break;
-					}
-					case 'checklistItems': {
-						const checklistId = this.getNodeParameter('checklistId', 0) as string;
-						const itemParsed = parseJsonInput('itemObject');
-						path = `/checklists/${checklistId}/items`;
-						requestBody = { checklist_item: itemParsed };
-						break;
-					}
-					case 'task': {
-						const taskParsed = parseJsonInput('taskObject');
-						path = '/tasks';
-						requestBody = { task: taskParsed };
-						break;
-					}
-					case 'team': {
-						const teamParsed = parseJsonInput('teamObject');
-						path = '/teams';
-						requestBody = { team: teamParsed };
-						break;
-					}
-					case 'documents': {
-						throw new NodeOperationError(this.getNode(), 'documents.create requires multipart upload and is not handled by this helper. Use the node UI binary upload or implement multipart handling.');
-					}
-					default: {
-						throw new NodeOperationError(this.getNode(), `Create operation not yet implemented for resource: ${resource}`);
-					}
+		if (operation === 'create') {
+			switch (resource) {
+				case 'user': {
+					const userParsed = parseJsonInput('userObject');
+					const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
+					path = '/users';
+					requestBody = { user: userParsed, make_everybody_mutual_partners: !!makeEverybody };
+					break;
 				}
+				case 'clients': {
+					const clientParsed = parseJsonInput('clientObject');
+					path = '/clients';
+					requestBody = { client: clientParsed };
+					break;
+				}
+				case 'checklists': {
+					const taskId = this.getNodeParameter('taskId', 0) as string;
+					const checklistParsed = parseJsonInput('checklistObject');
+					path = `/tasks/${taskId}/checklist`;
+					requestBody = { checklist: checklistParsed };
+					break;
+				}
+				case 'boardStage': {
+					const boardId = this.getNodeParameter('boardId', 0) as string;
+					const stageParsed = parseJsonInput('stageObject');
+					path = `/boards/${boardId}/stages`;
+					requestBody = { stage: stageParsed };
+					break;
+				}
+				case 'descendants': {
+					const taskId = this.getNodeParameter('taskId', 0) as string;
+					const descendantParsed = parseJsonInput('descendantObject');
+					path = `/tasks/${taskId}/descendants`;
+					requestBody = { task: descendantParsed };
+					break;
+				}
+				case 'comments': {
+					const commentParsed = parseJsonInput('commentObject');
+					path = '/comments';
+					requestBody = { comment: commentParsed };
+					break;
+				}
+				case 'checklistItems': {
+					const checklistId = this.getNodeParameter('checklistId', 0) as string;
+					const itemParsed = parseJsonInput('itemObject');
+					path = `/checklists/${checklistId}/items`;
+					requestBody = { checklist_item: itemParsed };
+					break;
+				}
+				case 'task': {
+					const taskParsed = parseJsonInput('taskObject');
+					path = '/tasks';
+					requestBody = { task: taskParsed };
+					break;
+				}
+				case 'team': {
+					const teamParsed = parseJsonInput('teamObject');
+					path = '/teams';
+					requestBody = { team: teamParsed };
+					break;
+				}
+				case 'documents': {
+					throw new NodeOperationError(this.getNode(), 'documents.create requires multipart upload and is not handled by this helper. Use the node UI binary upload or implement multipart handling.');
+				}
+				default: {
+					throw new NodeOperationError(this.getNode(), `Create operation not yet implemented for resource: ${resource}`);
+				}
+			}
 
-				if (mode === 'preview') {
-					const bodyString = JSON.stringify(requestBody);
-					const escaped = bodyString.replace(/'/g, "'\"'\"'");
-					const curl = `curl --location '${baseURL}${path}' \\
+			if (mode === 'preview') {
+				const bodyString = JSON.stringify(requestBody);
+				const escaped = bodyString.replace(/'/g, "'\"'\"'");
+				const curl = `curl --location '${baseURL}${path}' \\
 					--header 'App-Key: ${appKey}' \\
 					--header 'User-Token: ${userToken}' \\
 					--header 'Content-Type: application/json' \\
 					--data-raw '${escaped}'`;
 
-					return [[{ json: { curl } }]];
+				return [[{ json: { curl } }]];
+			}
+
+			try {
+				const response = await this.helpers.httpRequest({
+					method: 'POST',
+					url: `${baseURL}${path}`,
+					body: requestBody,
+					headers: {
+						'App-Key': appKey,
+						'User-Token': userToken,
+						'Content-Type': 'application/json',
+					},
+					json: true,
+				});
+
+				return [[{ json: response }]];
+			} catch (error: any) {
+				const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
+				const sentData = JSON.stringify(requestBody);
+				let apiResponseBody = undefined;
+				try {
+					apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
+				} catch (e) {
+					apiResponseBody = String(error?.response?.body);
 				}
 
-				try {
-					const response = await this.helpers.httpRequest({
-						method: 'POST',
-						url: `${baseURL}${path}`,
-						body: requestBody,
-						headers: {
-							'App-Key': appKey,
-							'User-Token': userToken,
-							'Content-Type': 'application/json',
-						},
-						json: true,
-					});
+				const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` +
+					(apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
 
-					return [[{ json: response }]];
-				} catch (error: any) {
-					const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
-					const sentData = JSON.stringify(requestBody);
-					let apiResponseBody = undefined;
-					try {
-						apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
-					} catch (e) {
-						apiResponseBody = String(error?.response?.body);
-					}
-
-					const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` +
-						(apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
-
-					throw new NodeOperationError(this.getNode(), finalMessage, { itemIndex: 0 });
+				throw new NodeOperationError(this.getNode(), finalMessage, { itemIndex: 0 });
+			}
+		} else if (operation === 'update') {
+			switch (resource) {
+				case 'user': {
+					const userId = this.getNodeParameter('userId', 0) as string;
+					const userParsed = parseJsonInput('userObject');
+					const makeEverybody = this.getNodeParameter('makeEverybodyMutualPartners', 0) as boolean | undefined;
+					path = `/users/${userId}`;
+					requestBody = { user: userParsed, make_everybody_mutual_partners: !!makeEverybody };
+					break;
+				}
+				case 'clients': {
+					const clientId = this.getNodeParameter('clientId', 0) as string;
+					const clientParsed = parseJsonInput('clientObject');
+					path = `/clients/${clientId}`;
+					requestBody = { client: clientParsed };
+					break;
+				}
+				case 'checklists': {
+					const taskId = this.getNodeParameter('taskId', 0) as string;
+					const checklistParsed = parseJsonInput('checklistObject');
+					path = `/tasks/${taskId}/checklist`;
+					requestBody = { checklist: checklistParsed };
+					break;
+				}
+				case 'boardStage': {
+					const boardId = this.getNodeParameter('boardId', 0) as string;
+					const stageId = this.getNodeParameter('stageId', 0) as string;
+					const stageParsed = parseJsonInput('stageObject');
+					path = `/boards/${boardId}/stages/${stageId}`;
+					requestBody = { stage: stageParsed };
+					break;
+				}
+				case 'comments': {
+					const commentId = this.getNodeParameter('commentId', 0) as string;
+					const commentParsed = parseJsonInput('commentObject');
+					path = `/comments/${commentId}`;
+					requestBody = { comment: commentParsed };
+					break;
+				}
+				case 'checklistItems': {
+					const checklistId = this.getNodeParameter('checklistId', 0) as string;
+					const itemId = this.getNodeParameter('itemId', 0) as string;
+					const itemParsed = parseJsonInput('itemObject');
+					path = `/checklists/${checklistId}/items/${itemId}`;
+					requestBody = { checklist_item: itemParsed };
+					break;
+				}
+				case 'task': {
+					const taskId = this.getNodeParameter('taskId', 0) as string;
+					const taskParsed = parseJsonInput('taskObject');
+					path = `/tasks/${taskId}`;
+					requestBody = { task: taskParsed };
+					break;
+				}
+				case 'team': {
+					const teamId = this.getNodeParameter('teamId', 0) as string;
+					const teamParsed = parseJsonInput('teamObject');
+					path = `/teams/${teamId}`;
+					requestBody = { team: teamParsed };
+					break;
+				}
+				case 'descriptions': {
+					const descriptionParsed = parseJsonInput('descriptionObject');
+					path = `/descriptions`;
+					requestBody = { description: descriptionParsed };
+					break;
+				}
+				default: {
+					throw new NodeOperationError(this.getNode(), `Update operation not yet implemented for resource: ${resource}`);
 				}
 			}
-		throw new NodeOperationError(this.getNode(), 'This node currently only supports create operations.');
+
+			if (mode === 'preview') {
+				const bodyString = JSON.stringify(requestBody);
+				const escaped = bodyString.replace(/'/g, "'\"'\"'");
+				const curl = `curl --location '${baseURL}${path}' \\
+					--header 'App-Key: ${appKey}' \\
+					--header 'User-Token: ${userToken}' \\
+					--header 'Content-Type: application/json' \\
+					--data-raw '${escaped}'`;
+
+				return [[{ json: { curl } }]];
+			}
+
+			try {
+				const response = await this.helpers.httpRequest({
+					method: 'PUT',
+					url: `${baseURL}${path}`,
+					body: requestBody,
+					headers: {
+						'App-Key': appKey,
+						'User-Token': userToken,
+						'Content-Type': 'application/json',
+					},
+					json: true,
+				});
+
+				return [[{ json: response }]];
+			} catch (error: any) {
+				const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
+				const sentData = JSON.stringify(requestBody);
+				let apiResponseBody = undefined;
+				try {
+					apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
+				} catch (e) {
+					apiResponseBody = String(error?.response?.body);
+				}
+
+				const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` +
+					(apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
+
+				throw new NodeOperationError(this.getNode(), finalMessage, { itemIndex: 0 });
+			}
+		} else {
+			throw new NodeOperationError(this.getNode(), 'This node currently only supports create/update operations.');
+		}
 	}
 }
