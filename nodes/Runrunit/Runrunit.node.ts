@@ -106,6 +106,10 @@ export class Runrunit implements INodeType {
 			return await Runrunit.handleUpdate(this, resource, mode, baseURL, appKey, userToken);
 		}
 
+		if (operation === 'get') {
+			return await Runrunit.handleGet(this, resource, mode, baseURL, appKey, userToken);
+		}
+
 		throw new NodeOperationError(this.getNode(), 'This node currently only supports create/update operations.');
 	}
 
@@ -366,6 +370,111 @@ export class Runrunit implements INodeType {
 			const finalMessage = `Erro Runrunit: "${apiErrorMessage}" | Payload enviado: ${sentData}` +
 				(apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
 
+			throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
+		}
+	}
+
+	private static async handleGet(
+		instance: IExecuteFunctions,
+		resource: string,
+		mode: string,
+		baseURL: string,
+		appKey: string,
+		userToken: string,
+	): Promise<INodeExecutionData[][]> {
+		let path = '';
+		let qsObj: Record<string, any> = {};
+
+		switch (resource) {
+			case 'user': {
+				const userId = instance.getNodeParameter('userId', 0) as string;
+				path = `/users/${userId}`;
+				break;
+			}
+			case 'clients': {
+				const clientId = instance.getNodeParameter('clientId', 0) as string;
+				path = `/clients/${clientId}`;
+				break;
+			}
+			case 'comments': {
+				const commentId = instance.getNodeParameter('commentId', 0) as string;
+				path = `/comments/${commentId}`;
+				break;
+			}
+			case 'checklistItems': {
+				const checklistId = instance.getNodeParameter('checklistId', 0) as string;
+				const itemId = instance.getNodeParameter('itemId', 0) as string;
+				path = `/checklists/${checklistId}/items/${itemId}`;
+				break;
+			}
+			case 'task': {
+				const taskId = instance.getNodeParameter('taskId', 0) as string;
+				path = `/tasks/${taskId}`;
+				break;
+			}
+			case 'team': {
+				const teamId = instance.getNodeParameter('teamId', 0) as string;
+				path = `/teams/${teamId}`;
+				break;
+			}
+			case 'boardStage': {
+				const boardId = instance.getNodeParameter('boardId', 0) as string;
+				const stageId = instance.getNodeParameter('stageId', 0) as string;
+				path = `/boards/${boardId}/stages/${stageId}`;
+				break;
+			}
+			case 'documents': {
+				const documentId = instance.getNodeParameter('documentId', 0) as string;
+				path = `/documents/${documentId}`;
+				break;
+			}
+			case 'descriptions': {
+				const subjectType = instance.getNodeParameter('subject_type', 0) as string;
+				const subjectId = instance.getNodeParameter('subject_id', 0) as string;
+				path = '/descriptions';
+				if (subjectType) qsObj.subject_type = subjectType;
+				if (subjectId) qsObj.subject_id = subjectId;
+				break;
+			}
+			default: {
+				throw new NodeOperationError(instance.getNode(), `Get operation not yet implemented for resource: ${resource}`);
+			}
+		}
+
+		let url = `${baseURL}${path}`;
+		if (Object.keys(qsObj).length) {
+			const params = new URLSearchParams();
+			for (const k of Object.keys(qsObj)) params.append(k, String(qsObj[k]));
+			url += `?${params.toString()}`;
+		}
+
+		if (mode === 'preview') {
+			const curl = `curl --location '${url}' \\n+				--header 'App-Key: ${appKey}' \\n+				--header 'User-Token: ${userToken}'`;
+			return [[{ json: { curl } }]];
+		}
+
+		try {
+			const response = await instance.helpers.httpRequest({
+				method: 'GET',
+				url,
+				headers: {
+					'App-Key': appKey,
+					'User-Token': userToken,
+				},
+				json: true,
+			});
+
+			return [[{ json: response }]];
+		} catch (error: any) {
+			const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
+			let apiResponseBody = undefined;
+			try {
+				apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
+			} catch (e) {
+				apiResponseBody = String(error?.response?.body);
+			}
+
+			const finalMessage = `Erro Runrunit: "${apiErrorMessage}"` + (apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
 			throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
 		}
 	}
