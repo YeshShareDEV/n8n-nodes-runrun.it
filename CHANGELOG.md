@@ -4,3 +4,7 @@
 - Feature: Add `user` getAll with pagination
 - Chore: Remove `company` resource
 
+## Unreleased
+
+- refactor: centralize HTTP requests and unify pagination UI for `getAll` across resources (added `makeRequest`, unified `returnAll` handling, updated pagination displayOptions)
+
