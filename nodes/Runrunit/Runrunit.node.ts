@@ -110,6 +110,10 @@ export class Runrunit implements INodeType {
 			return await Runrunit.handleGet(this, resource, mode, baseURL, appKey, userToken);
 		}
 
+		if (operation === 'getAll') {
+			return await Runrunit.handleGetAll(this, resource, mode, baseURL, appKey, userToken);
+		}
+
 		throw new NodeOperationError(this.getNode(), 'This node currently only supports create/update operations.');
 	}
 
@@ -450,6 +454,110 @@ export class Runrunit implements INodeType {
 
 		if (mode === 'preview') {
 			const curl = `curl --location '${url}' \\n+				--header 'App-Key: ${appKey}' \\n+				--header 'User-Token: ${userToken}'`;
+			return [[{ json: { curl } }]];
+		}
+
+		try {
+			const response = await instance.helpers.httpRequest({
+				method: 'GET',
+				url,
+				headers: {
+					'App-Key': appKey,
+					'User-Token': userToken,
+				},
+				json: true,
+			});
+
+			return [[{ json: response }]];
+		} catch (error: any) {
+			const apiErrorMessage = error?.response?.body?.message || error?.message || 'Unknown error';
+			let apiResponseBody = undefined;
+			try {
+				apiResponseBody = error?.response?.body ? JSON.stringify(error.response.body) : undefined;
+			} catch (e) {
+				apiResponseBody = String(error?.response?.body);
+			}
+
+			const finalMessage = `Erro Runrunit: "${apiErrorMessage}"` + (apiResponseBody ? ` | Response body: ${apiResponseBody}` : '');
+			throw new NodeOperationError(instance.getNode(), finalMessage, { itemIndex: 0 });
+		}
+	}
+
+	private static async handleGetAll(
+		instance: IExecuteFunctions,
+		resource: string,
+		mode: string,
+		baseURL: string,
+		appKey: string,
+		userToken: string,
+	): Promise<INodeExecutionData[][]> {
+		let path = '';
+		const qs: Record<string, any> = {};
+
+		switch (resource) {
+			case 'user': {
+				path = '/users';
+				const limit = instance.getNodeParameter('limit', 0) as number | undefined;
+				const page = instance.getNodeParameter('page', 0) as number | undefined;
+				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
+				if (limit) qs.limit = limit;
+				if (page) qs.page = page;
+				if (search) qs.search_term = search;
+				break;
+			}
+			case 'clients': {
+				path = '/clients';
+				break;
+			}
+			case 'task': {
+				path = '/tasks';
+				break;
+			}
+			case 'comments': {
+				const taskId = instance.getNodeParameter('taskId', 0) as string;
+				path = `/tasks/${taskId}/comments`;
+				break;
+			}
+			case 'documents': {
+				const taskId = instance.getNodeParameter('taskId', 0) as string;
+				path = `/tasks/${taskId}/documents`;
+				break;
+			}
+			case 'checklistItems': {
+				const checklistId = instance.getNodeParameter('checklistId', 0) as string;
+				path = `/checklists/${checklistId}/items`;
+				break;
+			}
+			case 'descendants': {
+				const taskId = instance.getNodeParameter('taskId', 0) as string;
+				path = `/tasks/${taskId}/descendants`;
+				break;
+			}
+			case 'team': {
+				path = '/teams';
+				break;
+			}
+			case 'boardStage': {
+				const boardId = instance.getNodeParameter('boardId', 0) as string;
+				path = `/boards/${boardId}/stages`;
+				break;
+			}
+			default: {
+				throw new NodeOperationError(instance.getNode(), `GetAll operation not yet implemented for resource: ${resource}`);
+			}
+		}
+
+		let url = `${baseURL}${path}`;
+		if (Object.keys(qs).length) {
+			const params = new URLSearchParams();
+			for (const k of Object.keys(qs)) params.append(k, String(qs[k]));
+			url += `?${params.toString()}`;
+		}
+
+		if (mode === 'preview') {
+			const curl = `curl --location '${url}' \\
+				--header 'App-Key: ${appKey}' \\
+				--header 'User-Token: ${userToken}'`;
 			return [[{ json: { curl } }]];
 		}
 
