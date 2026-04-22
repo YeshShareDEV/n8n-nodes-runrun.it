@@ -420,23 +420,56 @@ export class Runrunit implements INodeType {
 						const cond = item && typeof item === 'object' ? (item.condition ?? item) : undefined;
 						if (!cond || typeof cond !== 'object') continue;
 
-						// Only add numeric IDs > 0
-						if (typeof cond.project_id !== 'undefined' && Number(cond.project_id) > 0) {
-							qs.project_id = Number(cond.project_id);
-						}
-						if (typeof cond.client_id !== 'undefined' && Number(cond.client_id) > 0) {
-							qs.client_id = Number(cond.client_id);
+						// If cond.values exists, iterate it (preferred shape)
+						if (cond.values && Array.isArray(cond.values)) {
+							for (const v of cond.values) {
+								const key = v?.field ?? v?.name ?? v?.value1 ?? undefined;
+								const raw = v?.value ?? v?.value2 ?? v?.val ?? v?.value_raw ?? undefined;
+								if (!key) continue;
+
+								// IDs: project_id / client_id -> only Number(value) > 0
+								if ((key === 'project_id' || key === 'client_id')) {
+									const n = Number(raw);
+									if (!Number.isNaN(n) && n > 0) qs[key] = n;
+									continue;
+								}
+
+								// Responsible: non-empty string only
+								if (key === 'responsible_id') {
+									if (typeof raw === 'string' && raw.trim() !== '') qs.responsible_id = raw.trim();
+									continue;
+								}
+
+								// is_closed: only if present
+								if (key === 'is_closed') {
+									if (typeof raw !== 'undefined') {
+										if (typeof raw === 'string') {
+											const lower = raw.toLowerCase();
+											qs.is_closed = !(lower === 'false' || lower === '0');
+										} else {
+											qs.is_closed = !!raw;
+										}
+									}
+									continue;
+								}
+							}
+							continue; // move to next condition item
 						}
 
-						// responsible_id only if non-empty string
-						if (typeof cond.responsible_id !== 'undefined' && String(cond.responsible_id) !== '') {
-							qs.responsible_id = String(cond.responsible_id);
+						// Fallback: direct fields on cond
+						if (typeof cond.project_id !== 'undefined') {
+							const n = Number(cond.project_id);
+							if (!Number.isNaN(n) && n > 0) qs.project_id = n;
 						}
-
-						// is_closed: map if provided
-						if (typeof cond.is_closed !== 'undefined') {
-							qs.is_closed = !!cond.is_closed;
+						if (typeof cond.client_id !== 'undefined') {
+							const n = Number(cond.client_id);
+							if (!Number.isNaN(n) && n > 0) qs.client_id = n;
 						}
+						if (typeof cond.responsible_id !== 'undefined') {
+							const s = String(cond.responsible_id).trim();
+							if (s !== '') qs.responsible_id = s;
+						}
+						if (typeof cond.is_closed !== 'undefined') qs.is_closed = !!cond.is_closed;
 					}
 				}
 
