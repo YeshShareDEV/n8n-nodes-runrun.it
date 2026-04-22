@@ -405,9 +405,51 @@ export class Runrunit implements INodeType {
 			}
 			case 'task': {
 				path = '/tasks';
-				// support searching tasks as well
+
+				// 1. Search Term (Filtro simples)
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
+
+				// 2. Conditions (Fixed Collection) - Proteção Anti-Crash e Filtro Fake
+				const conditions = instance.getNodeParameter('conditions', 0, { values: [] }) as {
+					values: Array<{
+						project_id?: number;
+						client_id?: number;
+						responsible_id?: string;
+						is_closed?: boolean;
+					}>;
+				};
+
+				if (conditions && conditions.values && Array.isArray(conditions.values)) {
+					for (const item of conditions.values) {
+						// Só adiciona se o valor for maior que 0 (Filtro Fake)
+						if (item.project_id && Number(item.project_id) > 0) {
+							qs.project_id = item.project_id;
+						}
+						if (item.client_id && Number(item.client_id) > 0) {
+							qs.client_id = item.client_id;
+						}
+						// Só adiciona se houver texto válido
+						if (item.responsible_id && item.responsible_id.trim() !== '') {
+							qs.responsible_id = item.responsible_id;
+						}
+						// Booleano é passado conforme selecionado
+						if (item.is_closed !== undefined) {
+							qs.is_closed = item.is_closed;
+						}
+					}
+				}
+
+				// 3. Options (Collection) - Higienização para evitar enviar chaves vazias
+				const options = instance.getNodeParameter('options', 0, {}) as any;
+				if (options && typeof options === 'object' && Object.keys(options).length) {
+					for (const key of Object.keys(options)) {
+						const val = options[key];
+						if (val !== undefined && val !== '' && val !== 0) {
+							qs[key] = val;
+						}
+					}
+				}
 				break;
 			}
 			case 'comments': {
