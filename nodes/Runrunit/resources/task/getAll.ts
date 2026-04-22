@@ -51,31 +51,31 @@ export const taskGetManyDescription: INodeProperties[] = [
     {
         displayName: 'Conditions',
         name: 'conditions',
-        type: 'fixedCollection',
         placeholder: 'Add Condition',
+        type: 'fixedCollection',
+        default: { values: [] }, // AJUSTE: Garante estrutura mínima para o n8n
+        displayOptions: { show: showOnlyForTasks },
         typeOptions: {
             multipleValues: true,
         },
-        displayOptions: { show: showOnlyForTasks },
-        default: [],
         options: [
             {
-                displayName: 'Condition',
-                name: 'condition',
+                name: 'values',
+                displayName: 'Values',
                 values: [
                     {
                         displayName: 'Project ID',
                         name: 'project_id',
                         type: 'number',
                         default: 0,
-                        description: 'Filter by project id',
+                        description: 'Filter by project id (0 to ignore)',
                     },
                     {
                         displayName: 'Client ID',
                         name: 'client_id',
                         type: 'number',
                         default: 0,
-                        description: 'Filter by client id',
+                        description: 'Filter by client id (0 to ignore)',
                     },
                     {
                         displayName: 'Responsible ID',
@@ -102,6 +102,6 @@ export const taskGetManyDescription: INodeProperties[] = [
         placeholder: 'Options',
         default: {},
         displayOptions: { show: showOnlyForTasks },
-        description: 'Extra options container (handled natively, not routed automatically)',
+        description: 'Extra options container',
     },
 ];
