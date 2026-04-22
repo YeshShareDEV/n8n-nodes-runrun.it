@@ -405,79 +405,47 @@ export class Runrunit implements INodeType {
 			}
 			case 'task': {
 				path = '/tasks';
-				// support searching tasks as well
+
+				// 1. Search Term (Filtro simples)
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
 
-				// Extract conditions and options safely (do not rely on routing)
-				const conditions = instance.getNodeParameter('conditions', 0, []) as any[];
-				const options = instance.getNodeParameter('options', 0, {}) as any;
+				// 2. Conditions (Fixed Collection) - Proteção Anti-Crash e Filtro Fake
+				const conditions = instance.getNodeParameter('conditions', 0, { values: [] }) as {
+					values: Array<{
+						project_id?: number;
+						client_id?: number;
+						responsible_id?: string;
+						is_closed?: boolean;
+					}>;
+				};
 
-				// Defensive iteration per requested 'filtros fakes' logic.
-				if (Array.isArray(conditions)) {
-					for (const item of (conditions as any[])) {
-						// Access fixedCollection shape: item.condition
-						const cond = item && typeof item === 'object' ? (item.condition ?? item) : undefined;
-						if (!cond || typeof cond !== 'object') continue;
-
-						// If cond.values exists, iterate it (preferred shape)
-						if (cond.values && Array.isArray(cond.values)) {
-							for (const v of cond.values) {
-								const key = v?.field ?? v?.name ?? v?.value1 ?? undefined;
-								const raw = v?.value ?? v?.value2 ?? v?.val ?? v?.value_raw ?? undefined;
-								if (!key) continue;
-
-								// IDs: project_id / client_id -> only Number(value) > 0
-								if ((key === 'project_id' || key === 'client_id')) {
-									const n = Number(raw);
-									if (!Number.isNaN(n) && n > 0) qs[key] = n;
-									continue;
-								}
-
-								// Responsible: non-empty string only
-								if (key === 'responsible_id') {
-									if (typeof raw === 'string' && raw.trim() !== '') qs.responsible_id = raw.trim();
-									continue;
-								}
-
-								// is_closed: only if present
-								if (key === 'is_closed') {
-									if (typeof raw !== 'undefined') {
-										if (typeof raw === 'string') {
-											const lower = raw.toLowerCase();
-											qs.is_closed = !(lower === 'false' || lower === '0');
-										} else {
-											qs.is_closed = !!raw;
-										}
-									}
-									continue;
-								}
-							}
-							continue; // move to next condition item
+				if (conditions && conditions.values && Array.isArray(conditions.values)) {
+					for (const item of conditions.values) {
+						// Só adiciona se o valor for maior que 0 (Filtro Fake)
+						if (item.project_id && Number(item.project_id) > 0) {
+							qs.project_id = item.project_id;
 						}
-
-						// Fallback: direct fields on cond
-						if (typeof cond.project_id !== 'undefined') {
-							const n = Number(cond.project_id);
-							if (!Number.isNaN(n) && n > 0) qs.project_id = n;
+						if (item.client_id && Number(item.client_id) > 0) {
+							qs.client_id = item.client_id;
 						}
-						if (typeof cond.client_id !== 'undefined') {
-							const n = Number(cond.client_id);
-							if (!Number.isNaN(n) && n > 0) qs.client_id = n;
+						// Só adiciona se houver texto válido
+						if (item.responsible_id && item.responsible_id.trim() !== '') {
+							qs.responsible_id = item.responsible_id;
 						}
-						if (typeof cond.responsible_id !== 'undefined') {
-							const s = String(cond.responsible_id).trim();
-							if (s !== '') qs.responsible_id = s;
+						// Booleano é passado conforme selecionado
+						if (item.is_closed !== undefined) {
+							qs.is_closed = item.is_closed;
 						}
-						if (typeof cond.is_closed !== 'undefined') qs.is_closed = !!cond.is_closed;
 					}
 				}
 
-				// Map any simple options into query string safely (keeps extraction isolated)
+				// 3. Options (Collection) - Higienização para evitar enviar chaves vazias
+				const options = instance.getNodeParameter('options', 0, {}) as any;
 				if (options && typeof options === 'object' && Object.keys(options).length) {
 					for (const key of Object.keys(options)) {
-						const val = (options as any)[key];
-						if (typeof val !== 'undefined' && val !== '') {
+						const val = options[key];
+						if (val !== undefined && val !== '' && val !== 0) {
 							qs[key] = val;
 						}
 					}
