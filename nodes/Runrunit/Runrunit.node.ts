@@ -405,38 +405,47 @@ export class Runrunit implements INodeType {
 			}
 			case 'task': {
 				path = '/tasks';
-
+				
+				// Captura o termo de busca se existir
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
 
-				// Extração defensiva para evitar erro de iteração (autosave)
-				const conditions = instance.getNodeParameter('conditions', 0, { values: [] }) as {
-					values: Array<{
-						project_id?: number;
-						client_id?: number;
-						responsible_id?: string;
-						is_closed?: boolean;
-					}>;
-				};
+				// --- INÍCIO DA VALIDAÇÃO EXCLUSIVA PARA UNDEFINED ---
+				
+				// 1. Capturamos o parâmetro 'conditions'. 
+				// Se o n8n retornar undefined ou null, o fallback será um objeto com values vazio { values: [] }
+				const rawConditions = instance.getNodeParameter('conditions', 0, { values: [] }) as any;
 
-				if (conditions && conditions.values && Array.isArray(conditions.values)) {
-					for (const item of conditions.values) {
-						// Lógica de Filtro Fake: Ignora se for 0
-						if (item.project_id && Number(item.project_id) > 0) {
-							qs.project_id = item.project_id;
-						}
-						if (item.client_id && Number(item.client_id) > 0) {
-							qs.client_id = item.client_id;
-						}
-						if (item.responsible_id && item.responsible_id.trim() !== '') {
-							qs.responsible_id = item.responsible_id;
-						}
-						if (item.is_closed !== undefined) {
-							qs.is_closed = item.is_closed;
+				// 2. Verificação de segurança: Só prosseguimos se rawConditions for um objeto válido
+				if (rawConditions && typeof rawConditions === 'object') {
+					
+					// 3. Verificação explícita: 'values' existe e é uma lista (Array)?
+					const conditionValues = rawConditions.values;
+					
+					if (conditionValues && Array.isArray(conditionValues)) {
+						// 4. Se chegou aqui, é 100% seguro iterar (não dará erro 'is not iterable')
+						for (const item of conditionValues) {
+							if (!item) continue;
+
+							// Filtro Fake: Só adiciona à query string se o valor for preenchido (maior que 0)
+							if (typeof item.project_id !== 'undefined' && item.project_id !== null && Number(item.project_id) > 0) {
+								qs.project_id = item.project_id;
+							}
+							if (typeof item.client_id !== 'undefined' && item.client_id !== null && Number(item.client_id) > 0) {
+								qs.client_id = item.client_id;
+							}
+							if (item.responsible_id && typeof item.responsible_id === 'string' && item.responsible_id.trim() !== '') {
+								qs.responsible_id = item.responsible_id.trim();
+							}
+							if (item.is_closed !== undefined && item.is_closed !== null) {
+								qs.is_closed = !!item.is_closed;
+							}
 						}
 					}
 				}
+				// --- FIM DA VALIDAÇÃO ---
 
+				// Processamento de opções adicionais
 				const options = instance.getNodeParameter('options', 0, {}) as any;
 				if (options && typeof options === 'object' && Object.keys(options).length) {
 					for (const key of Object.keys(options)) {
