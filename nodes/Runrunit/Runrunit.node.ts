@@ -408,6 +408,32 @@ export class Runrunit implements INodeType {
 				// support searching tasks as well
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
+
+				// Extract conditions and options safely (do not rely on routing)
+				const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
+				const options = instance.getNodeParameter('options', 0, {}) as any;
+
+				if (conditions) {
+					if (Array.isArray(conditions)) {
+						for (const c of conditions) {
+							const fields = c?.condition ? c.condition : c;
+							if (fields && typeof fields === 'object') {
+								if (typeof fields.project_id !== 'undefined' && fields.project_id !== '') qs.project_id = Number(fields.project_id);
+								if (typeof fields.client_id !== 'undefined' && fields.client_id !== '') qs.client_id = Number(fields.client_id);
+								if (typeof fields.responsible_id !== 'undefined' && fields.responsible_id !== '') qs.responsible_id = String(fields.responsible_id);
+								if (typeof fields.is_closed !== 'undefined' && fields.is_closed !== '') qs.is_closed = !!fields.is_closed;
+							}
+						}
+					} else if (typeof conditions === 'object') {
+						const fields = (conditions as any).condition ?? conditions;
+						if (fields && typeof fields === 'object') {
+							if (typeof fields.project_id !== 'undefined' && fields.project_id !== '') qs.project_id = Number(fields.project_id);
+							if (typeof fields.client_id !== 'undefined' && fields.client_id !== '') qs.client_id = Number(fields.client_id);
+							if (typeof fields.responsible_id !== 'undefined' && fields.responsible_id !== '') qs.responsible_id = String(fields.responsible_id);
+							if (typeof fields.is_closed !== 'undefined' && fields.is_closed !== '') qs.is_closed = !!fields.is_closed;
+						}
+					}
+				}
 				break;
 			}
 			case 'comments': {
