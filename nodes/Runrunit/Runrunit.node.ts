@@ -414,10 +414,14 @@ export class Runrunit implements INodeType {
 				const options = instance.getNodeParameter('options', 0, {}) as any;
 
 				if (conditions) {
+					// Helper for fixedCollection style entries
+					const extractFields = (item: any) => (item && typeof item === 'object') ? (item.condition ?? item) : undefined;
+
+					// If conditions is an array (fixedCollection in some UIs)
 					if (Array.isArray(conditions)) {
 						for (const c of conditions) {
-							const fields = c?.condition ? c.condition : c;
-							if (fields && typeof fields === 'object') {
+							const fields = extractFields(c);
+							if (fields) {
 								if (typeof fields.project_id !== 'undefined' && fields.project_id !== '') qs.project_id = Number(fields.project_id);
 								if (typeof fields.client_id !== 'undefined' && fields.client_id !== '') qs.client_id = Number(fields.client_id);
 								if (typeof fields.responsible_id !== 'undefined' && fields.responsible_id !== '') qs.responsible_id = String(fields.responsible_id);
@@ -425,12 +429,38 @@ export class Runrunit implements INodeType {
 							}
 						}
 					} else if (typeof conditions === 'object') {
-						const fields = (conditions as any).condition ?? conditions;
-						if (fields && typeof fields === 'object') {
-							if (typeof fields.project_id !== 'undefined' && fields.project_id !== '') qs.project_id = Number(fields.project_id);
-							if (typeof fields.client_id !== 'undefined' && fields.client_id !== '') qs.client_id = Number(fields.client_id);
-							if (typeof fields.responsible_id !== 'undefined' && fields.responsible_id !== '') qs.responsible_id = String(fields.responsible_id);
-							if (typeof fields.is_closed !== 'undefined' && fields.is_closed !== '') qs.is_closed = !!fields.is_closed;
+						// Defensive checks for older UI shapes: conditions.number / conditions.boolean / conditions.string
+						if (conditions.number && Array.isArray(conditions.number)) {
+							for (const filter of conditions.number) {
+								const f = extractFields(filter) ?? filter;
+								if (f) {
+									if (typeof f.project_id !== 'undefined' && f.project_id !== '') qs.project_id = Number(f.project_id);
+									if (typeof f.client_id !== 'undefined' && f.client_id !== '') qs.client_id = Number(f.client_id);
+								}
+							}
+						}
+
+						if (conditions.boolean && Array.isArray(conditions.boolean)) {
+							for (const filter of conditions.boolean) {
+								const f = extractFields(filter) ?? filter;
+								if (f && typeof f.is_closed !== 'undefined' && f.is_closed !== '') qs.is_closed = !!f.is_closed;
+							}
+						}
+
+						if (conditions.string && Array.isArray(conditions.string)) {
+							for (const filter of conditions.string) {
+								const f = extractFields(filter) ?? filter;
+								if (f && typeof f.responsible_id !== 'undefined' && f.responsible_id !== '') qs.responsible_id = String(f.responsible_id);
+							}
+						}
+
+						// Also support a direct object with fields
+						const direct = extractFields(conditions) ?? conditions;
+						if (direct && typeof direct === 'object') {
+							if (typeof direct.project_id !== 'undefined' && direct.project_id !== '') qs.project_id = Number(direct.project_id);
+							if (typeof direct.client_id !== 'undefined' && direct.client_id !== '') qs.client_id = Number(direct.client_id);
+							if (typeof direct.responsible_id !== 'undefined' && direct.responsible_id !== '') qs.responsible_id = String(direct.responsible_id);
+							if (typeof direct.is_closed !== 'undefined' && direct.is_closed !== '') qs.is_closed = !!direct.is_closed;
 						}
 					}
 				}
