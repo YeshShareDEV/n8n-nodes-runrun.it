@@ -433,9 +433,19 @@ export class Runrunit implements INodeType {
 						if (conditions.number && Array.isArray(conditions.number)) {
 							for (const filter of conditions.number) {
 								const f = extractFields(filter) ?? filter;
+								// Prefer explicit named fields when present
 								if (f) {
 									if (typeof f.project_id !== 'undefined' && f.project_id !== '') qs.project_id = Number(f.project_id);
 									if (typeof f.client_id !== 'undefined' && f.client_id !== '') qs.client_id = Number(f.client_id);
+									continue;
+								}
+
+								// Support alternative shape: { value1: 'project_id', value2: '123' }
+								if (filter && typeof filter === 'object') {
+									const key = filter.value1 ?? filter.field ?? undefined;
+									const val = filter.value2 ?? filter.value ?? undefined;
+									if (key === 'project_id' && typeof val !== 'undefined' && val !== '' && val !== 0) qs.project_id = Number(val);
+									if (key === 'client_id' && typeof val !== 'undefined' && val !== '' && val !== 0) qs.client_id = Number(val);
 								}
 							}
 						}
@@ -443,14 +453,34 @@ export class Runrunit implements INodeType {
 						if (conditions.boolean && Array.isArray(conditions.boolean)) {
 							for (const filter of conditions.boolean) {
 								const f = extractFields(filter) ?? filter;
-								if (f && typeof f.is_closed !== 'undefined' && f.is_closed !== '') qs.is_closed = !!f.is_closed;
+								let rawVal: any = undefined;
+								if (f && typeof f.is_closed !== 'undefined') rawVal = f.is_closed;
+								else if (filter && typeof filter === 'object') rawVal = filter.value2 ?? filter.value;
+
+								if (typeof rawVal !== 'undefined' && rawVal !== '') {
+									if (typeof rawVal === 'string') {
+										const lower = rawVal.toLowerCase();
+										qs.is_closed = !(lower === 'false' || lower === '0');
+									} else {
+										qs.is_closed = !!rawVal;
+									}
+								}
 							}
 						}
 
 						if (conditions.string && Array.isArray(conditions.string)) {
 							for (const filter of conditions.string) {
 								const f = extractFields(filter) ?? filter;
-								if (f && typeof f.responsible_id !== 'undefined' && f.responsible_id !== '') qs.responsible_id = String(f.responsible_id);
+								if (f && typeof f.responsible_id !== 'undefined' && f.responsible_id !== '') {
+									qs.responsible_id = String(f.responsible_id);
+									continue;
+								}
+
+								if (filter && typeof filter === 'object') {
+									const key = filter.value1 ?? filter.field ?? undefined;
+									const val = filter.value2 ?? filter.value ?? undefined;
+									if (key === 'responsible_id' && typeof val !== 'undefined' && val !== '') qs.responsible_id = String(val);
+								}
 							}
 						}
 
