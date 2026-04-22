@@ -410,35 +410,33 @@ export class Runrunit implements INodeType {
 				if (search) qs.search_term = search;
 
 				// Extract conditions and options safely (do not rely on routing)
-				const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
+				const conditions = instance.getNodeParameter('conditions', 0, []) as any[];
 				const options = instance.getNodeParameter('options', 0, {}) as any;
 
-				// Simplified, defensive parsing for fixedCollection-shaped `conditions`.
-				// Expectation: `conditions` is an array of items where each item may
-				// have a `.condition` object (fixedCollection) or be the object itself.
-				if (conditions && Array.isArray(conditions)) {
+				// Defensive iteration per requested 'filtros fakes' logic.
+				if (Array.isArray(conditions)) {
 					for (const item of (conditions as any[])) {
-						const cond = (item && typeof item === 'object') ? (item.condition ?? item) : undefined;
+						// Access fixedCollection shape: item.condition
+						const cond = item && typeof item === 'object' ? (item.condition ?? item) : undefined;
 						if (!cond || typeof cond !== 'object') continue;
 
-						// Apply fake filtering rules: only send numeric IDs > 0
-						if (typeof cond.project_id !== 'undefined' && Number(cond.project_id) > 0) qs.project_id = Number(cond.project_id);
-						if (typeof cond.client_id !== 'undefined' && Number(cond.client_id) > 0) qs.client_id = Number(cond.client_id);
+						// Only add numeric IDs > 0
+						if (typeof cond.project_id !== 'undefined' && Number(cond.project_id) > 0) {
+							qs.project_id = Number(cond.project_id);
+						}
+						if (typeof cond.client_id !== 'undefined' && Number(cond.client_id) > 0) {
+							qs.client_id = Number(cond.client_id);
+						}
 
-						// responsible_id: only if non-empty string
-						if (typeof cond.responsible_id !== 'undefined' && String(cond.responsible_id) !== '') qs.responsible_id = String(cond.responsible_id);
+						// responsible_id only if non-empty string
+						if (typeof cond.responsible_id !== 'undefined' && String(cond.responsible_id) !== '') {
+							qs.responsible_id = String(cond.responsible_id);
+						}
 
-						// is_closed: map explicitly if provided
-						if (typeof cond.is_closed !== 'undefined') qs.is_closed = !!cond.is_closed;
-					}
-				} else if (conditions && typeof conditions === 'object') {
-					// Also support a direct object shape: { condition: { ... } } or direct fields
-					const cond = (conditions.condition ?? conditions) as any;
-					if (cond && typeof cond === 'object') {
-						if (typeof cond.project_id !== 'undefined' && Number(cond.project_id) > 0) qs.project_id = Number(cond.project_id);
-						if (typeof cond.client_id !== 'undefined' && Number(cond.client_id) > 0) qs.client_id = Number(cond.client_id);
-						if (typeof cond.responsible_id !== 'undefined' && String(cond.responsible_id) !== '') qs.responsible_id = String(cond.responsible_id);
-						if (typeof cond.is_closed !== 'undefined') qs.is_closed = !!cond.is_closed;
+						// is_closed: map if provided
+						if (typeof cond.is_closed !== 'undefined') {
+							qs.is_closed = !!cond.is_closed;
+						}
 					}
 				}
 
