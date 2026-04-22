@@ -53,7 +53,7 @@ export const taskGetManyDescription: INodeProperties[] = [
         name: 'conditions',
         placeholder: 'Add Condition',
         type: 'fixedCollection',
-        default: { values: [] }, // AJUSTE: Garante estrutura mínima para o n8n
+        default: { values: [] }, // Estrutura essencial para evitar erro de iteração no n8n
         displayOptions: { show: showOnlyForTasks },
         typeOptions: {
             multipleValues: true,
