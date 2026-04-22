@@ -413,85 +413,32 @@ export class Runrunit implements INodeType {
 				const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
 				const options = instance.getNodeParameter('options', 0, {}) as any;
 
-				if (conditions) {
-					// Helper for fixedCollection style entries
-					const extractFields = (item: any) => (item && typeof item === 'object') ? (item.condition ?? item) : undefined;
+				// Simplified, defensive parsing for fixedCollection-shaped `conditions`.
+				// Expectation: `conditions` is an array of items where each item may
+				// have a `.condition` object (fixedCollection) or be the object itself.
+				if (conditions && Array.isArray(conditions)) {
+					for (const item of (conditions as any[])) {
+						const cond = (item && typeof item === 'object') ? (item.condition ?? item) : undefined;
+						if (!cond || typeof cond !== 'object') continue;
 
-					// If conditions is an array (fixedCollection in some UIs)
-					if (Array.isArray(conditions)) {
-						for (const c of conditions) {
-							const fields = extractFields(c);
-							if (fields) {
-								if (typeof fields.project_id !== 'undefined' && fields.project_id !== '') qs.project_id = Number(fields.project_id);
-								if (typeof fields.client_id !== 'undefined' && fields.client_id !== '') qs.client_id = Number(fields.client_id);
-								if (typeof fields.responsible_id !== 'undefined' && fields.responsible_id !== '') qs.responsible_id = String(fields.responsible_id);
-								if (typeof fields.is_closed !== 'undefined' && fields.is_closed !== '') qs.is_closed = !!fields.is_closed;
-							}
-						}
-					} else if (typeof conditions === 'object') {
-						// Defensive checks for older UI shapes: conditions.number / conditions.boolean / conditions.string
-						if (conditions.number && Array.isArray(conditions.number)) {
-							for (const filter of conditions.number) {
-								const f = extractFields(filter) ?? filter;
-								// Prefer explicit named fields when present
-								if (f) {
-									if (typeof f.project_id !== 'undefined' && f.project_id !== '') qs.project_id = Number(f.project_id);
-									if (typeof f.client_id !== 'undefined' && f.client_id !== '') qs.client_id = Number(f.client_id);
-									continue;
-								}
+						// Apply fake filtering rules: only send numeric IDs > 0
+						if (typeof cond.project_id !== 'undefined' && Number(cond.project_id) > 0) qs.project_id = Number(cond.project_id);
+						if (typeof cond.client_id !== 'undefined' && Number(cond.client_id) > 0) qs.client_id = Number(cond.client_id);
 
-								// Support alternative shape: { value1: 'project_id', value2: '123' }
-								if (filter && typeof filter === 'object') {
-									const key = filter.value1 ?? filter.field ?? undefined;
-									const val = filter.value2 ?? filter.value ?? undefined;
-									if (key === 'project_id' && typeof val !== 'undefined' && val !== '' && val !== 0) qs.project_id = Number(val);
-									if (key === 'client_id' && typeof val !== 'undefined' && val !== '' && val !== 0) qs.client_id = Number(val);
-								}
-							}
-						}
+						// responsible_id: only if non-empty string
+						if (typeof cond.responsible_id !== 'undefined' && String(cond.responsible_id) !== '') qs.responsible_id = String(cond.responsible_id);
 
-						if (conditions.boolean && Array.isArray(conditions.boolean)) {
-							for (const filter of conditions.boolean) {
-								const f = extractFields(filter) ?? filter;
-								let rawVal: any = undefined;
-								if (f && typeof f.is_closed !== 'undefined') rawVal = f.is_closed;
-								else if (filter && typeof filter === 'object') rawVal = filter.value2 ?? filter.value;
-
-								if (typeof rawVal !== 'undefined' && rawVal !== '') {
-									if (typeof rawVal === 'string') {
-										const lower = rawVal.toLowerCase();
-										qs.is_closed = !(lower === 'false' || lower === '0');
-									} else {
-										qs.is_closed = !!rawVal;
-									}
-								}
-							}
-						}
-
-						if (conditions.string && Array.isArray(conditions.string)) {
-							for (const filter of conditions.string) {
-								const f = extractFields(filter) ?? filter;
-								if (f && typeof f.responsible_id !== 'undefined' && f.responsible_id !== '') {
-									qs.responsible_id = String(f.responsible_id);
-									continue;
-								}
-
-								if (filter && typeof filter === 'object') {
-									const key = filter.value1 ?? filter.field ?? undefined;
-									const val = filter.value2 ?? filter.value ?? undefined;
-									if (key === 'responsible_id' && typeof val !== 'undefined' && val !== '') qs.responsible_id = String(val);
-								}
-							}
-						}
-
-						// Also support a direct object with fields
-						const direct = extractFields(conditions) ?? conditions;
-						if (direct && typeof direct === 'object') {
-							if (typeof direct.project_id !== 'undefined' && direct.project_id !== '') qs.project_id = Number(direct.project_id);
-							if (typeof direct.client_id !== 'undefined' && direct.client_id !== '') qs.client_id = Number(direct.client_id);
-							if (typeof direct.responsible_id !== 'undefined' && direct.responsible_id !== '') qs.responsible_id = String(direct.responsible_id);
-							if (typeof direct.is_closed !== 'undefined' && direct.is_closed !== '') qs.is_closed = !!direct.is_closed;
-						}
+						// is_closed: map explicitly if provided
+						if (typeof cond.is_closed !== 'undefined') qs.is_closed = !!cond.is_closed;
+					}
+				} else if (conditions && typeof conditions === 'object') {
+					// Also support a direct object shape: { condition: { ... } } or direct fields
+					const cond = (conditions.condition ?? conditions) as any;
+					if (cond && typeof cond === 'object') {
+						if (typeof cond.project_id !== 'undefined' && Number(cond.project_id) > 0) qs.project_id = Number(cond.project_id);
+						if (typeof cond.client_id !== 'undefined' && Number(cond.client_id) > 0) qs.client_id = Number(cond.client_id);
+						if (typeof cond.responsible_id !== 'undefined' && String(cond.responsible_id) !== '') qs.responsible_id = String(cond.responsible_id);
+						if (typeof cond.is_closed !== 'undefined') qs.is_closed = !!cond.is_closed;
 					}
 				}
 
