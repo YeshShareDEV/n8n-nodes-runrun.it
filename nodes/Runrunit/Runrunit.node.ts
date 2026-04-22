@@ -434,6 +434,16 @@ export class Runrunit implements INodeType {
 						}
 					}
 				}
+
+				// Map any simple options into query string safely (keeps extraction isolated)
+				if (options && typeof options === 'object' && Object.keys(options).length) {
+					for (const key of Object.keys(options)) {
+						const val = (options as any)[key];
+						if (typeof val !== 'undefined' && val !== '') {
+							qs[key] = val;
+						}
+					}
+				}
 				break;
 			}
 			case 'comments': {
