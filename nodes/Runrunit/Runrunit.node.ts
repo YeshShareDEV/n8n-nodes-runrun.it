@@ -410,52 +410,14 @@ export class Runrunit implements INodeType {
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
 
-				// Read static pre-request filters (top-level fields) instead of iterating a fixedCollection
-				const projectId = instance.getNodeParameter('project_id', 0) as number | undefined;
-				if (typeof projectId !== 'undefined' && Number(projectId) > 0) qs.project_id = projectId;
-
-				const clientId = instance.getNodeParameter('client_id', 0) as number | undefined;
-				if (typeof clientId !== 'undefined' && Number(clientId) > 0) qs.client_id = clientId;
-
-				const responsibleId = instance.getNodeParameter('responsible_id', 0) as string | undefined;
-				if (typeof responsibleId === 'string' && responsibleId.trim() !== '') qs.responsible_id = responsibleId.trim();
-
-				const isClosed = instance.getNodeParameter('is_closed', 0) as boolean | undefined;
-				if (typeof isClosed !== 'undefined' && isClosed !== null) qs.is_closed = !!isClosed;
-
-				// Processamento de opções adicionais (defensivo)
-				const rawOptions = instance.getNodeParameter('options', 0, {}) as any;
-				let optionsObj: Record<string, any> = {};
-				if (rawOptions == null) {
-					optionsObj = {};
-				} else if (typeof rawOptions === 'string') {
-					try {
-						const parsed = JSON.parse(rawOptions);
-						optionsObj = parsed && typeof parsed === 'object' ? parsed : {};
-					} catch (e) {
-						optionsObj = {};
-					}
-				} else if (Array.isArray(rawOptions)) {
-					// array of entries -> convert to object if possible
-					for (const entry of rawOptions) {
-						if (entry && typeof entry === 'object' && 'name' in entry && 'value' in entry) {
-							optionsObj[String(entry.name)] = entry.value;
+				// Processamento de opções adicionais
+				const options = instance.getNodeParameter('options', 0, {}) as any;
+				if (options && typeof options === 'object' && Object.keys(options).length) {
+					for (const key of Object.keys(options)) {
+						const val = options[key];
+						if (val !== undefined && val !== '' && val !== 0) {
+							qs[key] = val;
 						}
-					}
-				} else if (rawOptions && typeof rawOptions === 'object' && Array.isArray(rawOptions.values)) {
-					// fixedCollection-like shape { values: [ { name, value }, ... ] }
-					for (const entry of rawOptions.values) {
-						if (entry && typeof entry === 'object' && 'name' in entry && 'value' in entry) {
-							optionsObj[String(entry.name)] = entry.value;
-						}
-					}
-				} else if (rawOptions && typeof rawOptions === 'object') {
-					optionsObj = rawOptions;
-				}
-
-				if (optionsObj && typeof optionsObj === 'object' && Object.keys(optionsObj).length) {
-					for (const [key, val] of Object.entries(optionsObj)) {
-						if (val !== undefined && val !== '' && val !== 0) qs[key] = val;
 					}
 				}
 				break;
