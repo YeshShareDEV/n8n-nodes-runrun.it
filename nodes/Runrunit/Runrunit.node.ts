@@ -419,10 +419,10 @@ export class Runrunit implements INodeType {
 					if (typeof responsibleId === 'string' && responsibleId.trim() !== '') qs.responsible_id = responsibleId.trim();
 
 					const isClosed = instance.getNodeParameter('is_closed', 0) as string | undefined;
-					if (typeof isClosed !== 'undefined' && isClosed !== null) {
-						if (isClosed === 'true') qs.is_closed = true;
-						else if (isClosed === 'false') qs.is_closed = false;
-						// if 'all' or any other value, do not add to qs
+					if (isClosed === 'true') {
+						qs.is_closed = true;
+					} else if (isClosed === 'false') {
+						qs.is_closed = false;
 					}
 				} catch (e) {
 					// If parameters are missing or malformed, ignore and continue
