@@ -410,40 +410,18 @@ export class Runrunit implements INodeType {
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
 
-				// --- INÍCIO DA VALIDAÇÃO EXCLUSIVA PARA UNDEFINED ---
-				
-				// 1. Capturamos o parâmetro 'conditions'. 
-				// Se o n8n retornar undefined ou null, o fallback será um objeto com values vazio { values: [] }
-				const rawConditions = instance.getNodeParameter('conditions', 0, { values: [] }) as any;
+				// Read static pre-request filters (top-level fields) instead of iterating a fixedCollection
+				const projectId = instance.getNodeParameter('project_id', 0) as number | undefined;
+				if (typeof projectId !== 'undefined' && Number(projectId) > 0) qs.project_id = projectId;
 
-				// 2. Verificação de segurança: Só prosseguimos se rawConditions for um objeto válido
-				if (rawConditions && typeof rawConditions === 'object') {
-					
-					// 3. Verificação explícita: 'values' existe e é uma lista (Array)?
-					const conditionValues = rawConditions.values;
-					
-					if (conditionValues && Array.isArray(conditionValues)) {
-						// 4. Se chegou aqui, é 100% seguro iterar (não dará erro 'is not iterable')
-						for (const item of conditionValues) {
-							if (!item) continue;
+				const clientId = instance.getNodeParameter('client_id', 0) as number | undefined;
+				if (typeof clientId !== 'undefined' && Number(clientId) > 0) qs.client_id = clientId;
 
-							// Filtro Fake: Só adiciona à query string se o valor for preenchido (maior que 0)
-							if (typeof item.project_id !== 'undefined' && item.project_id !== null && Number(item.project_id) > 0) {
-								qs.project_id = item.project_id;
-							}
-							if (typeof item.client_id !== 'undefined' && item.client_id !== null && Number(item.client_id) > 0) {
-								qs.client_id = item.client_id;
-							}
-							if (item.responsible_id && typeof item.responsible_id === 'string' && item.responsible_id.trim() !== '') {
-								qs.responsible_id = item.responsible_id.trim();
-							}
-							if (item.is_closed !== undefined && item.is_closed !== null) {
-								qs.is_closed = !!item.is_closed;
-							}
-						}
-					}
-				}
-				// --- FIM DA VALIDAÇÃO ---
+				const responsibleId = instance.getNodeParameter('responsible_id', 0) as string | undefined;
+				if (typeof responsibleId === 'string' && responsibleId.trim() !== '') qs.responsible_id = responsibleId.trim();
+
+				const isClosed = instance.getNodeParameter('is_closed', 0) as boolean | undefined;
+				if (typeof isClosed !== 'undefined' && isClosed !== null) qs.is_closed = !!isClosed;
 
 				// Processamento de opções adicionais
 				const options = instance.getNodeParameter('options', 0, {}) as any;
@@ -493,7 +471,23 @@ export class Runrunit implements INodeType {
 
 		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
 		if (resp && resp.curl) return [[{ json: resp }]];
-		return [[{ json: resp }]];
+
+		// Normalize response into n8n items so postFilter can evaluate each element
+		const items: INodeExecutionData[] = [];
+		if (Array.isArray(resp)) {
+			for (const r of resp) items.push({ json: r });
+		} else if (resp && typeof resp === 'object') {
+			const arr = resp.tasks || resp.data || resp.items || resp;
+			if (Array.isArray(arr)) {
+				for (const r of arr) items.push({ json: r });
+			} else {
+				items.push({ json: resp });
+			}
+		} else {
+			items.push({ json: resp });
+		}
+
+		return [items];
 	}
 
 }
