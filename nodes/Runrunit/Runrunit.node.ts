@@ -484,6 +484,21 @@ export class Runrunit implements INodeType {
 			items.push({ json: resp });
 		}
 
+		// Apply post-filters (Conditions) if configured
+		try {
+			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
+			if (conditions && Object.keys(conditions).length > 0) {
+				const { filteredItems } = instance.filterInputData(items, conditions) as { filteredItems: INodeExecutionData[] };
+				if (Array.isArray(filteredItems)) {
+					// replace items with filtered result
+					items.length = 0;
+					for (const it of filteredItems) items.push(it);
+				}
+			}
+		} catch (e) {
+			// ignore filtering errors and return unfiltered items
+		}
+
 		return [items];
 	}
 

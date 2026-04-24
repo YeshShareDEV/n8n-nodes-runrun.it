@@ -52,6 +52,42 @@ export const taskGetManyDescription: INodeProperties[] = [
         description: 'Filter by responsible user id',
     },
     {
+        displayName: 'Options',
+        name: 'options',
+        type: 'collection',
+        displayOptions: { show: showOnlyForTasks },
+        default: {},
+        placeholder: 'Add Option',
+        options: [
+            {
+                displayName: 'Ignore Case',
+                name: 'ignoreCase',
+                type: 'boolean',
+                default: true,
+                description: 'Ignore case when applying post-filters',
+            },
+            {
+                displayName: 'Loose Type Validation',
+                name: 'looseTypeValidation',
+                type: 'boolean',
+                default: false,
+                description: 'Allow loose type validation when filtering',
+            },
+        ],
+    },
+    {
+        displayName: 'Conditions',
+        name: 'conditions',
+        type: 'filter',
+        displayOptions: { show: showOnlyForTasks },
+        default: {},
+        typeOptions: {
+            ignoreCase: '={{$parameter["options.ignoreCase"]}}',
+            looseTypeValidation: '={{$parameter["options.looseTypeValidation"]}}',
+        },
+        description: 'Post-filter the returned tasks using the Conditions UI',
+    },
+    {
         displayName: 'Is Closed',
         name: 'is_closed',
         type: 'options',
