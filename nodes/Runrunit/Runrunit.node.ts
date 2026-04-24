@@ -423,6 +423,9 @@ export class Runrunit implements INodeType {
 						qs.is_closed = true;
 					} else if (isClosed === 'false') {
 						qs.is_closed = false;
+					} else if (isClosed === 'all') {
+						// when user selects 'All', instruct API to bypass default status filtering
+						qs.bypass_status_default = true;
 					}
 				} catch (e) {
 					// If parameters are missing or malformed, ignore and continue
