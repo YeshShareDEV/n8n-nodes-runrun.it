@@ -54,10 +54,15 @@ export const taskGetManyDescription: INodeProperties[] = [
     {
         displayName: 'Is Closed',
         name: 'is_closed',
-        type: 'boolean',
-        default: false,
+        type: 'options',
+        default: 'all',
+        options: [
+            { name: 'All', value: 'all' },
+            { name: 'Open', value: 'false' },
+            { name: 'Closed', value: 'true' },
+        ],
         displayOptions: { show: showOnlyForTasks },
-        description: 'Filter by closed/open tasks',
+        description: 'Filter by closed/open/all tasks',
     },
     {
         displayName: 'Page',
@@ -72,12 +77,5 @@ export const taskGetManyDescription: INodeProperties[] = [
         default: 1,
         description: 'Page number for pagination (1-based)',
     },
-        {
-            displayName: 'Search Term',
-            name: 'search_term',
-            type: 'string',
-            displayOptions: { show: showOnlyForTasks },
-            default: '',
-            description: 'Search term to filter tasks',
-        },
+    // duplicate search_term removed
     ];
