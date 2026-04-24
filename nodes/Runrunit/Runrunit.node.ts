@@ -472,7 +472,7 @@ export class Runrunit implements INodeType {
 		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
 		if (resp && resp.curl) return [[{ json: resp }]];
 
-		// Normalize response into n8n items so postFilter can evaluate each element
+		// Normalize API response into n8n `INodeExecutionData` items
 		const items: INodeExecutionData[] = [];
 		if (Array.isArray(resp)) {
 			for (const r of resp) items.push({ json: r });
