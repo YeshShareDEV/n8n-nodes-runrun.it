@@ -409,17 +409,6 @@ export class Runrunit implements INodeType {
 				// Captura o termo de busca se existir
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
-
-				// Processamento de opções adicionais
-				const options = instance.getNodeParameter('options', 0, {}) as any;
-				if (options && typeof options === 'object' && Object.keys(options).length) {
-					for (const key of Object.keys(options)) {
-						const val = options[key];
-						if (val !== undefined && val !== '' && val !== 0) {
-							qs[key] = val;
-						}
-					}
-				}
 				break;
 			}
 			case 'comments': {
