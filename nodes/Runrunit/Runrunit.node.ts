@@ -409,6 +409,20 @@ export class Runrunit implements INodeType {
 				// Captura o termo de busca se existir
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
+
+				// Read individual static filters with defensive try/catch
+				try {
+					const projectId = instance.getNodeParameter('project_id', 0) as number | undefined;
+					if (typeof projectId !== 'undefined' && Number(projectId) > 0) qs.project_id = projectId;
+
+					const responsibleId = instance.getNodeParameter('responsible_id', 0) as string | undefined;
+					if (typeof responsibleId === 'string' && responsibleId.trim() !== '') qs.responsible_id = responsibleId.trim();
+
+					const isClosed = instance.getNodeParameter('is_closed', 0) as boolean | undefined;
+					if (typeof isClosed !== 'undefined' && isClosed !== null) qs.is_closed = !!isClosed;
+				} catch (e) {
+					// If parameters are missing or malformed, ignore and continue
+				}
 				break;
 			}
 			case 'comments': {
