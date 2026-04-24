@@ -81,14 +81,6 @@ export const taskGetManyDescription: INodeProperties[] = [
         description: 'Filter by closed/open tasks',
     },
     {
-        displayName: 'Post Filter',
-        name: 'postFilter',
-        type: 'filter',
-        default: {},
-        displayOptions: { show: showOnlyForTasks },
-        description: 'Filter the API response using logical conditions on the returned JSON',
-    },
-    {
         displayName: 'Options',
         name: 'options',
         type: 'collection',
