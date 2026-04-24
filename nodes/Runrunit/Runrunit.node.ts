@@ -485,18 +485,27 @@ export class Runrunit implements INodeType {
 		}
 
 		// Apply post-filters (Conditions) if configured
+		// Use (instance as any).filterInputData to satisfy TypeScript (method exists at runtime)
 		try {
+			// 1. Get tasks and convert to INodeExecutionData[]
+			const tasks = Array.isArray(resp) ? resp : [];
+			let postItems: INodeExecutionData[] = tasks.map((t: any) => ({ json: t }));
+
+			// 2. Retrieve conditions
 			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
+
 			if (conditions && Object.keys(conditions).length > 0) {
-				const { filteredItems } = instance.filterInputData(items, conditions) as { filteredItems: INodeExecutionData[] };
+				const { filteredItems } = (instance as any).filterInputData(postItems, conditions) as { filteredItems: INodeExecutionData[] };
 				if (Array.isArray(filteredItems)) {
-					// replace items with filtered result
-					items.length = 0;
-					for (const it of filteredItems) items.push(it);
+					postItems = filteredItems;
 				}
 			}
+
+			// replace items with post-filtered items
+			items.length = 0;
+			for (const it of postItems) items.push(it);
 		} catch (e) {
-			// ignore filtering errors and return unfiltered items
+			// ignore filtering errors and keep original items
 		}
 
 		return [items];
