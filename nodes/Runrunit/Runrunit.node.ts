@@ -487,14 +487,33 @@ export class Runrunit implements INodeType {
 		// Apply post-filters (Conditions) if configured
 		// Use (instance as any).filterInputData to satisfy TypeScript (method exists at runtime)
 		try {
-			// 1. Get tasks and convert to INodeExecutionData[]
-			const tasks = Array.isArray(resp) ? resp : [];
-			let postItems: INodeExecutionData[] = tasks.map((t: any) => ({ json: t }));
+			// Build the source array to filter in a consistent way regardless of API response shape
+			let arrayToFilter: any[] = [];
+			if (Array.isArray(resp)) {
+				arrayToFilter = resp;
+			} else if (resp && typeof resp === 'object') {
+				const arr = resp.tasks || resp.data || resp.items;
+				if (Array.isArray(arr)) {
+					arrayToFilter = arr;
+				} else {
+					arrayToFilter = [resp];
+				}
+			} else {
+				arrayToFilter = [resp];
+			}
 
-			// 2. Retrieve conditions
+			let postItems: INodeExecutionData[] = arrayToFilter.map((t: any) => ({ json: t }));
+
+			// Retrieve conditions and filter options (from the dedicated `options` collection)
 			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
+			const optionsParam = instance.getNodeParameter('options', 0, { ignoreCase: true, looseTypeValidation: true }) as any;
 
 			if (conditions && Object.keys(conditions).length > 0) {
+				// Ensure the filter config contains the expected runtime keys
+				if (!conditions.filter) conditions.filter = {};
+				if (typeof conditions.filter.caseSensitive === 'undefined') conditions.filter.caseSensitive = !optionsParam.ignoreCase;
+				if (typeof conditions.filter.typeValidation === 'undefined') conditions.filter.typeValidation = optionsParam.looseTypeValidation ? 'loose' : 'strict';
+
 				const { filteredItems } = (instance as any).filterInputData(postItems, conditions) as { filteredItems: INodeExecutionData[] };
 				if (Array.isArray(filteredItems)) {
 					postItems = filteredItems;
