@@ -8,3 +8,7 @@
 
 - refactor: centralize HTTP requests and unify pagination UI for `getAll` across resources (added `makeRequest`, unified `returnAll` handling, updated pagination displayOptions)
 
+(1.0.0) - 2026-04-28
+- Release: Commit geral (bumped from Unreleased)
+
+
