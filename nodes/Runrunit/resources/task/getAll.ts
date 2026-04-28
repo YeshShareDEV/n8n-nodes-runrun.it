@@ -6,6 +6,15 @@ const showOnlyForTasks = {
 };
 
 export const taskGetManyDescription: INodeProperties[] = [
+    // === Filtros da API (antes do post-filter) ===
+    {
+        displayName: 'Return All',
+        name: 'returnAll',
+        type: 'boolean',
+        displayOptions: { show: showOnlyForTasks },
+        default: false,
+        description: 'Whether to return all results or only up to a given limit',
+    },
     {
         displayName: 'Limit',
         name: 'limit',
@@ -20,12 +29,17 @@ export const taskGetManyDescription: INodeProperties[] = [
         description: 'Max number of results to return',
     },
     {
-        displayName: 'Return All',
-        name: 'returnAll',
-        type: 'boolean',
-        displayOptions: { show: showOnlyForTasks },
-        default: false,
-        description: 'Whether to return all results or only up to a given limit',
+        displayName: 'Page',
+        name: 'page',
+        type: 'number',
+        displayOptions: {
+            show: {
+                ...showOnlyForTasks,
+                returnAll: [false],
+            },
+        },
+        default: 1,
+        description: 'Page number for pagination',
     },
     {
         displayName: 'Search Term',
@@ -39,18 +53,33 @@ export const taskGetManyDescription: INodeProperties[] = [
         displayName: 'Project ID',
         name: 'project_id',
         type: 'number',
-        default: 0,
         displayOptions: { show: showOnlyForTasks },
-        description: 'Filter by project id (0 to ignore)',
+        default: 0,
+        description: 'Filter by project id (0 = ignore)',
     },
     {
         displayName: 'Responsible ID',
         name: 'responsible_id',
         type: 'string',
-        default: '',
         displayOptions: { show: showOnlyForTasks },
+        default: '',
         description: 'Filter by responsible user id',
     },
+    {
+        displayName: 'Is Closed',
+        name: 'is_closed',
+        type: 'options',
+        default: 'all',
+        displayOptions: { show: showOnlyForTasks },
+        options: [
+            { name: 'All', value: 'all' },
+            { name: 'Open', value: 'false' },
+            { name: 'Closed', value: 'true' },
+        ],
+        description: 'Filter by task status',
+    },
+
+    // === Filter Options (Ignore Case + Loose Validation) ===
     {
         displayName: 'Filter Options',
         name: 'options',
@@ -59,10 +88,24 @@ export const taskGetManyDescription: INodeProperties[] = [
         default: { ignoreCase: true, looseTypeValidation: true },
         displayOptions: { show: showOnlyForTasks },
         options: [
-            { displayName: 'Ignore Case', name: 'ignoreCase', type: 'boolean', default: true },
-            { displayName: 'Loose Type Validation', name: 'looseTypeValidation', type: 'boolean', default: true },
+            {
+                displayName: 'Ignore Case',
+                name: 'ignoreCase',
+                type: 'boolean',
+                default: true,
+                description: 'Whether comparisons should be case-insensitive',
+            },
+            {
+                displayName: 'Loose Type Validation',
+                name: 'looseTypeValidation',
+                type: 'boolean',
+                default: true,
+                description: 'Allow loose type conversion (e.g. string "123" == number 123)',
+            },
         ],
     },
+
+    // === Conditions (Post-filter) - Versão corrigida e mais estável ===
     {
         displayName: 'Conditions',
         name: 'conditions',
@@ -71,49 +114,24 @@ export const taskGetManyDescription: INodeProperties[] = [
         default: {},
         displayOptions: { show: showOnlyForTasks },
         typeOptions: {
-            // Cast to `any` to allow custom `fields` prop beyond the defined FilterTypeOptions
-            filter: ({
-                caseSensitive: '={{!$parameter.options.ignoreCase}}',
-                typeValidation: '={{$parameter.options.looseTypeValidation ? "loose" : "strict"}}',
+            filter: {
+                // Expressões atualizadas (mais confiáveis)
+                caseSensitive: '={{ !$parameter["options"]["ignoreCase"] }}',
+                typeValidation: '={{ $parameter["options"]["looseTypeValidation"] ? "loose" : "strict" }}',
+
                 fields: [
-                    { displayName: 'Task ID', name: 'id', type: 'number' },
-                    { displayName: 'Title', name: 'title', type: 'string' },
-                    { displayName: 'Project Name', name: 'project_name', type: 'string' },
-                    { displayName: 'Client Name', name: 'client_name', type: 'string' },
-                    { displayName: 'Priority', name: 'priority', type: 'number' },
-                    { displayName: 'Created At', name: 'created_at', type: 'dateTime' },
-                    { displayName: 'Is Working On', name: 'is_working_on', type: 'boolean' },
+                    { displayName: 'Task ID',        name: 'id',            type: 'number' },
+                    { displayName: 'Title',          name: 'title',         type: 'string' },
+                    { displayName: 'Project Name',   name: 'project_name',  type: 'string' },
+                    { displayName: 'Client Name',    name: 'client_name',   type: 'string' },
+                    { displayName: 'Priority',       name: 'priority',      type: 'number' },
+                    { displayName: 'Created At',     name: 'created_at',    type: 'dateTime' },
+                    { displayName: 'Is Working On',  name: 'is_working_on', type: 'boolean' },
                     { displayName: 'Time Worked (Sec)', name: 'time_worked', type: 'number' },
+                    // Você pode adicionar mais campos aqui no futuro
                 ],
-            } as any),
+            } as any,
         },
         description: 'Post-filter the returned tasks using the Conditions UI',
     },
-    {
-        displayName: 'Is Closed',
-        name: 'is_closed',
-        type: 'options',
-        default: 'all',
-        options: [
-            { name: 'All', value: 'all' },
-            { name: 'Open', value: 'false' },
-            { name: 'Closed', value: 'true' },
-        ],
-        displayOptions: { show: showOnlyForTasks },
-        description: 'Filter by closed/open/all tasks',
-    },
-    {
-        displayName: 'Page',
-        name: 'page',
-        type: 'number',
-        displayOptions: {
-            show: {
-                ...showOnlyForTasks,
-                returnAll: [false],
-            },
-        },
-        default: 1,
-        description: 'Page number for pagination (1-based)',
-    },
-    // duplicate search_term removed
-    ];
+];
