@@ -11,7 +11,8 @@ export const taskGetManyDescription: INodeProperties[] = [
         displayName: 'Return All',
         name: 'returnAll',
         type: 'boolean',
-        displayOptions: { show: showOnlyForTasks },
+        // Mostrar Condições sempre que o resource for 'task' (evita possível mismatch com operation)
+        displayOptions: { show: { resource: ['task'] } },
         default: false,
         description: 'Whether to return all results or only up to a given limit',
     },
@@ -77,9 +78,7 @@ export const taskGetManyDescription: INodeProperties[] = [
             { name: 'Closed', value: 'true' },
         ],
         description: 'Filter by task status',
-    },
-
-    // === Filter Options (Ignore Case + Loose Validation) ===
+    }, // === Filter Options (Ignore Case + Loose Validation) ===
     {
         displayName: 'Filter Options',
         name: 'options',
@@ -103,9 +102,7 @@ export const taskGetManyDescription: INodeProperties[] = [
                 description: 'Allow loose type conversion (e.g. string "123" == number 123)',
             },
         ],
-    },
-
-    // === Conditions (Post-filter) - Versão corrigida e mais estável ===
+    }, // === Conditions (Post-filter) - Versão corrigida e mais estável ===
     {
         displayName: 'Conditions',
         name: 'conditions',
