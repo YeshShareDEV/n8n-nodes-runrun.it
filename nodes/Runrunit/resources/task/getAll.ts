@@ -114,19 +114,7 @@ export const taskGetManyDescription: INodeProperties[] = [
             filter: {
                 // Expressões atualizadas (mais confiáveis)
                 caseSensitive: '={{ !$parameter["options"]["ignoreCase"] }}',
-                typeValidation: '={{ $parameter["options"]["looseTypeValidation"] ? "loose" : "strict" }}',
-
-                fields: [
-                    { displayName: 'Task ID',        name: 'id',            type: 'number' },
-                    { displayName: 'Title',          name: 'title',         type: 'string' },
-                    { displayName: 'Project Name',   name: 'project_name',  type: 'string' },
-                    { displayName: 'Client Name',    name: 'client_name',   type: 'string' },
-                    { displayName: 'Priority',       name: 'priority',      type: 'number' },
-                    { displayName: 'Created At',     name: 'created_at',    type: 'dateTime' },
-                    { displayName: 'Is Working On',  name: 'is_working_on', type: 'boolean' },
-                    { displayName: 'Time Worked (Sec)', name: 'time_worked', type: 'number' },
-                    // Você pode adicionar mais campos aqui no futuro
-                ],
+                typeValidation: '={{ $parameter["options"]["looseTypeValidation"] ? "loose" : "strict" }}',                
             } as any,
         },
         description: 'Post-filter the returned tasks using the Conditions UI',
