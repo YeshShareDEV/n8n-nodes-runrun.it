@@ -378,137 +378,145 @@ export class Runrunit implements INodeType {
 	}
 
 	private static async handleGetAll(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
-		let path = '';
-		const qs: Record<string, any> = {};
+		const returnData: INodeExecutionData[] = [];
+		const inputCount = Math.max(1, instance.getInputData().length);
 
-		// Global pagination handling
-		const returnAll = instance.getNodeParameter('returnAll', 0) as boolean | undefined;
-		if (returnAll) {
-			qs.limit = 99999;
-		} else {
-			const limit = instance.getNodeParameter('limit', 0) as number | undefined;
-			const page = instance.getNodeParameter('page', 0) as number | undefined;
-			if (typeof limit !== 'undefined') qs.limit = limit;
-			if (typeof page !== 'undefined') qs.page = page;
-		}
+		for (let i = 0; i < inputCount; i++) {
+			let path = '';
+			const qs: Record<string, any> = {};
 
-		switch (resource) {
-			case 'user': {
-				path = '/users';
-				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
-				if (search) qs.search_term = search;
-				break;
+			// Per-item pagination handling (capture parameters using index `i`)
+			const returnAll = instance.getNodeParameter('returnAll', i) as boolean | undefined;
+			if (returnAll) {
+				qs.limit = 99999;
+			} else {
+				const limit = instance.getNodeParameter('limit', i) as number | undefined;
+				const page = instance.getNodeParameter('page', i) as number | undefined;
+				if (typeof limit !== 'undefined') qs.limit = limit;
+				if (typeof page !== 'undefined') qs.page = page;
 			}
-			case 'clients': {
-				path = '/clients';
-				break;
-			}
-			case 'task': {
-				path = '/tasks';
-				
-				// Captura o termo de busca se existir
-				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
-				if (search) qs.search_term = search;
 
-				// Read individual static filters with defensive try/catch
-				try {
-					const projectId = instance.getNodeParameter('project_id', 0) as number | undefined;
-					if (typeof projectId !== 'undefined' && Number(projectId) > 0) qs.project_id = projectId;
-
-					const responsibleId = instance.getNodeParameter('responsible_id', 0) as string | undefined;
-					if (typeof responsibleId === 'string' && responsibleId.trim() !== '') qs.responsible_id = responsibleId.trim();
-
-					const isClosed = instance.getNodeParameter('is_closed', 0) as string | undefined;
-					if (isClosed === 'true') {
-						qs.is_closed = true;
-					} else if (isClosed === 'false') {
-						qs.is_closed = false;
-					} else if (isClosed === 'all') {
-						// when user selects 'All', instruct API to bypass default status filtering
-						qs.bypass_status_default = true;
-					}
-				} catch (e) {
-					// If parameters are missing or malformed, ignore and continue
+			switch (resource) {
+				case 'user': {
+					path = '/users';
+					const search = instance.getNodeParameter('search_term', i) as string | undefined;
+					if (search) qs.search_term = search;
+					break;
 				}
-				break;
-			}
-			case 'comments': {
-				const taskId = instance.getNodeParameter('taskId', 0) as string;
-				path = `/tasks/${taskId}/comments`;
-				break;
-			}
-			case 'documents': {
-				const taskId = instance.getNodeParameter('taskId', 0) as string;
-				path = `/tasks/${taskId}/documents`;
-				break;
-			}
-			case 'checklistItems': {
-				const checklistId = instance.getNodeParameter('checklistId', 0) as string;
-				path = `/checklists/${checklistId}/items`;
-				break;
-			}
-			case 'descendants': {
-				const taskId = instance.getNodeParameter('taskId', 0) as string;
-				path = `/tasks/${taskId}/descendants`;
-				break;
-			}
-			case 'team': {
-				path = '/teams';
-				break;
-			}
-			case 'boardStage': {
-				const boardId = instance.getNodeParameter('boardId', 0) as string;
-				path = `/boards/${boardId}/stages`;
-				break;
-			}
-			default: {
-				throw new NodeOperationError(instance.getNode(), `GetAll operation not yet implemented for resource: ${resource}`);
-			}
-		}
+				case 'clients': {
+					path = '/clients';
+					break;
+				}
+				case 'task': {
+					path = '/tasks';
+					const search = instance.getNodeParameter('search_term', i) as string | undefined;
+					if (search) qs.search_term = search;
 
-		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
-		if (resp && resp.curl) return [[{ json: resp }]];
+					try {
+						const projectId = instance.getNodeParameter('project_id', i) as number | undefined;
+						if (typeof projectId !== 'undefined' && Number(projectId) > 0) qs.project_id = projectId;
 
-		// Defensive normalization of `resp` into a consistent array of objects
-		let parsedResp: any = resp;
-		if (typeof resp === 'string') {
-			try {
-				parsedResp = JSON.parse(resp);
-			} catch (e) {
-				// keep original string if parse fails
-				parsedResp = resp;
+						const responsibleId = instance.getNodeParameter('responsible_id', i) as string | undefined;
+						if (typeof responsibleId === 'string' && responsibleId.trim() !== '') qs.responsible_id = responsibleId.trim();
+
+						const isClosed = instance.getNodeParameter('is_closed', i) as string | undefined;
+						if (isClosed === 'true') {
+							qs.is_closed = true;
+						} else if (isClosed === 'false') {
+							qs.is_closed = false;
+						} else if (isClosed === 'all') {
+							qs.bypass_status_default = true;
+						}
+					} catch (e) {
+						// ignore malformed params
+					}
+					break;
+				}
+				case 'comments': {
+					const taskId = instance.getNodeParameter('taskId', i) as string;
+					path = `/tasks/${taskId}/comments`;
+					break;
+				}
+				case 'documents': {
+					const taskId = instance.getNodeParameter('taskId', i) as string;
+					path = `/tasks/${taskId}/documents`;
+					break;
+				}
+				case 'checklistItems': {
+					const checklistId = instance.getNodeParameter('checklistId', i) as string;
+					path = `/checklists/${checklistId}/items`;
+					break;
+				}
+				case 'descendants': {
+					const taskId = instance.getNodeParameter('taskId', i) as string;
+					path = `/tasks/${taskId}/descendants`;
+					break;
+				}
+				case 'team': {
+					path = '/teams';
+					break;
+				}
+				case 'boardStage': {
+					const boardId = instance.getNodeParameter('boardId', i) as string;
+					path = `/boards/${boardId}/stages`;
+					break;
+				}
+				default: {
+					throw new NodeOperationError(instance.getNode(), `GetAll operation not yet implemented for resource: ${resource}`);
+				}
 			}
-		}
 
-		// Locate the array of data in common response shapes
-		let normalizedArray: any[] = [];
-		if (Array.isArray(parsedResp)) {
-			normalizedArray = parsedResp;
-		} else if (parsedResp && typeof parsedResp === 'object') {
-			const arr = parsedResp.tasks || parsedResp.data || parsedResp.items;
-			if (Array.isArray(arr)) {
-				normalizedArray = arr;
+			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
+			if (resp && resp.curl) return [[{ json: resp }]];
+
+			let parsedResp: any = resp;
+			if (typeof resp === 'string') {
+				try { parsedResp = JSON.parse(resp); } catch (e) { parsedResp = resp; }
+			}
+
+			let normalizedArray: any[] = [];
+			if (Array.isArray(parsedResp)) {
+				normalizedArray = parsedResp;
+			} else if (parsedResp && typeof parsedResp === 'object') {
+				const arr = parsedResp.tasks || parsedResp.data || parsedResp.items;
+				if (Array.isArray(arr)) normalizedArray = arr;
+				else normalizedArray = [parsedResp];
 			} else {
 				normalizedArray = [parsedResp];
 			}
-		} else {
-			// primitive (number/string/etc) — wrap so callers still get a single item
-			normalizedArray = [parsedResp];
+
+			const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
+			let postItems: INodeExecutionData[] = items.map((it) => ({ json: JSON.parse(JSON.stringify(it.json)), binary: it.binary ? { ...it.binary } : undefined }));
+
+			const options = instance.getNodeParameter('options', i) as any || {};
+			const conditions = (instance.getNodeParameter('conditions', i) as any) || {};
+
+			// Configure root-level flags on conditions
+			conditions.caseSensitive = !!(options && options.ignoreCase === false);
+			conditions.typeValidation = options && options.looseTypeValidation ? 'loose' : 'strict';
+
+			console.log(`Runrunit: task.getAll — items before filter: ${postItems.length}`);
+			console.log('Runrunit: active filter rules:', conditions);
+
+			let finalItems: INodeExecutionData[] = postItems;
+			try {
+				const helper = (instance.helpers as any).filterInputData as any;
+				if (typeof helper === 'function') {
+					const filtered = helper(postItems, conditions as any);
+					if (Array.isArray(filtered)) finalItems = filtered as INodeExecutionData[];
+					else if (filtered && Array.isArray(filtered.filteredItems)) finalItems = filtered.filteredItems as INodeExecutionData[];
+				}
+			} catch (err) {
+				console.warn('Runrunit: filterInputData failed, returning unfiltered items', err);
+				finalItems = postItems;
+			}
+
+			console.log(`Runrunit: task.getAll — items after filter: ${finalItems.length}`);
+
+			for (const it of finalItems) returnData.push(it);
 		}
 
-		// Ensure both `items` (return value) and `postItems` (filter input) use the exact same normalized list
-		const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-		// cópia segura para evitar mutações inesperadas
-		// Faz clone profundo do `json` para evitar referências compartilhadas; preserva `binary` por cópia superficial
-		let postItems: INodeExecutionData[] = items.map((i) => ({ json: JSON.parse(JSON.stringify(i.json)), binary: i.binary ? { ...i.binary } : undefined }));
-
-		// Post-filter is not applicable with current n8n API
-		// Filtering should be handled via API query parameters or implemented via custom logic if needed
-
-		// Atualiza o array final com o resultado do filtro
-		const finalItems = postItems;
-
-		return [finalItems];
+		return [returnData];
 	}
 
 }
