@@ -511,9 +511,18 @@ export class Runrunit implements INodeType {
 				if (typeof conditions.filter.caseSensitive === 'undefined') conditions.filter.caseSensitive = !optionsParam.ignoreCase;
 				if (typeof conditions.filter.typeValidation === 'undefined') conditions.filter.typeValidation = optionsParam.looseTypeValidation ? 'loose' : 'strict';
 
-				const { filteredItems } = (instance as any).filterInputData(postItems, conditions) as { filteredItems: INodeExecutionData[] };
-				if (Array.isArray(filteredItems)) {
-					postItems = filteredItems;
+				// Prefer `instance.filterInputData` but fallback to `instance.helpers.filterInputData`
+				const filterFn = (instance as any).filterInputData || (instance as any).helpers?.filterInputData;
+				if (typeof filterFn === 'function') {
+					const { filteredItems } = filterFn.call(instance, postItems, conditions) as { filteredItems: INodeExecutionData[] };
+					if (Array.isArray(filteredItems)) {
+						postItems = filteredItems;
+					}
+				} else {
+					// If running on an n8n version where filterInputData isn't available,
+					// skip post-filter rather than throwing — preserves node behavior.
+					// eslint-disable-next-line no-console
+					console.warn('Runrunit: filterInputData not available on this runtime; skipping post-filter conditions');
 				}
 			}
 
