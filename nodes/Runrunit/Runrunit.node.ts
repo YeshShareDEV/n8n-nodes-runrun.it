@@ -469,47 +469,44 @@ export class Runrunit implements INodeType {
 		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
 		if (resp && resp.curl) return [[{ json: resp }]];
 
-		// Normalize API response into n8n `INodeExecutionData` items
-		const items: INodeExecutionData[] = [];
-		if (Array.isArray(resp)) {
-			for (const r of resp) items.push({ json: r });
-		} else if (resp && typeof resp === 'object') {
-			const arr = resp.tasks || resp.data || resp.items || resp;
+		// Defensive normalization of `resp` into a consistent array of objects
+		let parsedResp: any = resp;
+		if (typeof resp === 'string') {
+			try {
+				parsedResp = JSON.parse(resp);
+			} catch (e) {
+				// keep original string if parse fails
+				parsedResp = resp;
+			}
+		}
+
+		// Locate the array of data in common response shapes
+		let normalizedArray: any[] = [];
+		if (Array.isArray(parsedResp)) {
+			normalizedArray = parsedResp;
+		} else if (parsedResp && typeof parsedResp === 'object') {
+			const arr = parsedResp.tasks || parsedResp.data || parsedResp.items;
 			if (Array.isArray(arr)) {
-				for (const r of arr) items.push({ json: r });
+				normalizedArray = arr;
 			} else {
-				items.push({ json: resp });
+				normalizedArray = [parsedResp];
 			}
 		} else {
-			items.push({ json: resp });
+			// primitive (number/string/etc) — wrap so callers still get a single item
+			normalizedArray = [parsedResp];
 		}
+
+		// Ensure both `items` (return value) and `postItems` (filter input) use the exact same normalized list
+		const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
+		let postItems: INodeExecutionData[] = items.map((i) => i);
 
 		// Apply post-filters (Conditions) if configured
 		// Use (instance as any).filterInputData to satisfy TypeScript (method exists at runtime)
 		try {
-			// Build the source array to filter in a consistent way regardless of API response shape
-			let arrayToFilter: any[] = [];
-			if (Array.isArray(resp)) {
-				arrayToFilter = resp;
-			} else if (resp && typeof resp === 'object') {
-				const arr = resp.tasks || resp.data || resp.items;
-				if (Array.isArray(arr)) {
-					arrayToFilter = arr;
-				} else {
-					arrayToFilter = [resp];
-				}
-			} else {
-				arrayToFilter = [resp];
-			}
-
-			let postItems: INodeExecutionData[] = arrayToFilter.map((t: any) => ({ json: t }));
-
-			// Retrieve conditions and filter options (from the dedicated `options` collection)
 			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
 			const optionsParam = instance.getNodeParameter('options', 0, { ignoreCase: true, looseTypeValidation: true }) as any;
 
 			if (conditions && Object.keys(conditions).length > 0) {
-				// Ensure the filter config contains the expected runtime keys
 				if (!conditions.filter) conditions.filter = {};
 				if (typeof conditions.filter.caseSensitive === 'undefined') conditions.filter.caseSensitive = !optionsParam.ignoreCase;
 				if (typeof conditions.filter.typeValidation === 'undefined') conditions.filter.typeValidation = optionsParam.looseTypeValidation ? 'loose' : 'strict';
@@ -524,7 +521,9 @@ export class Runrunit implements INodeType {
 			items.length = 0;
 			for (const it of postItems) items.push(it);
 		} catch (e) {
-			// ignore filtering errors and keep original items
+			// log error to aid debugging of filter condition failures, but don't throw
+			// eslint-disable-next-line no-console
+			console.error('Runrunit: post-filter conditions failed', e);
 		}
 
 		return [items];
