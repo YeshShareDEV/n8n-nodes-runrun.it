@@ -1,9 +1,9 @@
 {
   "name": "n8n-nodes-runrunit",
-  "version": "0.3.51",
+  "version": "1.0.0",
   "description": "n8n community nodes for Runrun.it (Runrunit) integrations",
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/YeshShareDEV/n8n-nodes-runrun.it",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
@@ -25,7 +25,6 @@
     "build": "n8n-node build",
     "build:watch": "tsc --watch",
     "dev": "n8n-node dev",
-    "debug:env": "node -e \"console.log(process.env.PATH); const { execSync } = require('child_process'); try { console.log(execSync('command -v n8n-node').toString().trim()); } catch (e) { console.log('n8n-node: not found'); }\"",
     "lint": "n8n-node lint",
     "lint:fix": "n8n-node lint --fix",
     "release": "n8n-node release",
@@ -33,7 +32,6 @@
   },
   "files": [
     "dist",
-    "README.md",
     "nodes/**/*.svg",
     "nodes/**/*.png"
   ],
@@ -48,19 +46,17 @@
     ]
   },
   "devDependencies": {
-    "@n8n/node-cli": "^1.0.0",
-    "n8n-workflow": "^2.16.0",
-    "n8n-node-dev": "^1.121.16",
-    "typescript": "^5.5.0",
-    "eslint": "^9.0.0",
-    "prettier": "^3.0.0",
-    "release-it": "^17.0.0"
+    "n8n-workflow": "^1.0.0",
+    "n8n-core": "^1.0.0",
+    "n8n-node-dev": "^1.60.0",
+    "typescript": "~5.4.5",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=18.10.0"
   }
 }
