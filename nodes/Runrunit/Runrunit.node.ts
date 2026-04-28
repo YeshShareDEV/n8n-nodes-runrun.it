@@ -502,7 +502,7 @@ export class Runrunit implements INodeType {
 
 		// Apply post-filters (Conditions) if configured
 		// Use (instance as any).filterInputData to satisfy TypeScript (method exists at runtime)
-		try {
+		//try {
 			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
 			const optionsParam = instance.getNodeParameter('options', 0, { ignoreCase: true, looseTypeValidation: true }) as any;
 
@@ -520,11 +520,11 @@ export class Runrunit implements INodeType {
 			// replace items with post-filtered items
 			items.length = 0;
 			for (const it of postItems) items.push(it);
-		} catch (e) {
+		//} catch (e) {
 			// log error to aid debugging of filter condition failures, but don't throw
 			// eslint-disable-next-line no-console
-			console.error('Runrunit: post-filter conditions failed', e);
-		}
+		//	console.error('Runrunit: post-filter conditions failed', e);
+		//}
 
 		return [items];
 	}
