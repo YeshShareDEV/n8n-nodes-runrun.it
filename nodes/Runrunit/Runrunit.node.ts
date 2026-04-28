@@ -498,44 +498,57 @@ export class Runrunit implements INodeType {
 
 		// Ensure both `items` (return value) and `postItems` (filter input) use the exact same normalized list
 		const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-		let postItems: INodeExecutionData[] = items.map((i) => i);
+		// cópia segura para evitar mutações inesperadas
+		// Faz clone profundo do `json` para evitar referências compartilhadas; preserva `binary` por cópia superficial
+		let postItems: INodeExecutionData[] = items.map((i) => ({ json: JSON.parse(JSON.stringify(i.json)), binary: i.binary ? { ...i.binary } : undefined }));
 
-		// Apply post-filters (Conditions) if configured
-		// Use (instance as any).filterInputData to satisfy TypeScript (method exists at runtime)
-		//try {
+		// === POST-FILTER COM CONDITIONS (type: 'filter') ===
+		try {
 			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
-			const optionsParam = instance.getNodeParameter('options', 0, { ignoreCase: true, looseTypeValidation: true }) as any;
 
-			if (conditions && Object.keys(conditions).length > 0) {
+			// Só aplica filtro se o usuário configurou alguma condição
+			if (conditions && typeof conditions === 'object' && Object.keys(conditions).length > 0) {
+
+				const optionsParam = instance.getNodeParameter('options', 0, {
+					ignoreCase: true,
+					looseTypeValidation: true,
+				}) as any;
+
+				// Prepara as configurações de case e type validation
 				if (!conditions.filter) conditions.filter = {};
-				if (typeof conditions.filter.caseSensitive === 'undefined') conditions.filter.caseSensitive = !optionsParam.ignoreCase;
-				if (typeof conditions.filter.typeValidation === 'undefined') conditions.filter.typeValidation = optionsParam.looseTypeValidation ? 'loose' : 'strict';
+				if (typeof conditions.filter.caseSensitive === 'undefined') {
+					conditions.filter.caseSensitive = !optionsParam.ignoreCase;
+				}
+				if (typeof conditions.filter.typeValidation === 'undefined') {
+					conditions.filter.typeValidation = optionsParam.looseTypeValidation ? 'loose' : 'strict';
+				}
 
-				// Prefer `instance.filterInputData` but fallback to `instance.helpers.filterInputData`
-				const filterFn = (instance as any).filterInputData || (instance as any).helpers?.filterInputData;
+				// === Forma correta e atual de chamar o filter ===
+				const filterFn = instance.helpers?.filterInputData;
+
 				if (typeof filterFn === 'function') {
-					const { filteredItems } = filterFn.call(instance, postItems, conditions) as { filteredItems: INodeExecutionData[] };
-					if (Array.isArray(filteredItems)) {
-						postItems = filteredItems;
+					const filterResult = await filterFn.call(instance, postItems, conditions);
+
+					if (filterResult?.filteredItems && Array.isArray(filterResult.filteredItems)) {
+						postItems = filterResult.filteredItems;
+					} else if (Array.isArray(filterResult)) {
+						postItems = filterResult;
 					}
 				} else {
-					// If running on an n8n version where filterInputData isn't available,
-					// skip post-filter rather than throwing — preserves node behavior.
 					// eslint-disable-next-line no-console
-					console.warn('Runrunit: filterInputData not available on this runtime; skipping post-filter conditions');
+					console.warn('Runrunit: this.helpers.filterInputData não disponível nesta versão do n8n. Pulando post-filter.');
 				}
 			}
-
-			// replace items with post-filtered items
-			items.length = 0;
-			for (const it of postItems) items.push(it);
-		//} catch (e) {
-			// log error to aid debugging of filter condition failures, but don't throw
+		} catch (error: any) {
+			// Não quebra a execução do nó — continua com os itens originais
 			// eslint-disable-next-line no-console
-		//	console.error('Runrunit: post-filter conditions failed', e);
-		//}
+			console.error('Runrunit: Erro ao aplicar post-filter Conditions:', error.message || error);
+		}
 
-		return [items];
+		// Atualiza o array final com o resultado do filtro
+		const finalItems = postItems;
+
+		return [finalItems];
 	}
 
 }
