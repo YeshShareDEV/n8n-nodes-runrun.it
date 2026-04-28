@@ -405,50 +405,30 @@ export class Runrunit implements INodeType {
 			}
 			case 'task': {
 				path = '/tasks';
-
-				// 1. Search Term (Filtro simples)
+				
+				// Captura o termo de busca se existir
 				const search = instance.getNodeParameter('search_term', 0) as string | undefined;
 				if (search) qs.search_term = search;
 
-				// 2. Conditions (Fixed Collection) - Proteção Anti-Crash e Filtro Fake
-				const conditions = instance.getNodeParameter('conditions', 0, { values: [] }) as {
-					values: Array<{
-						project_id?: number;
-						client_id?: number;
-						responsible_id?: string;
-						is_closed?: boolean;
-					}>;
-				};
+				// Read individual static filters with defensive try/catch
+				try {
+					const projectId = instance.getNodeParameter('project_id', 0) as number | undefined;
+					if (typeof projectId !== 'undefined' && Number(projectId) > 0) qs.project_id = projectId;
 
-				if (conditions && conditions.values && Array.isArray(conditions.values)) {
-					for (const item of conditions.values) {
-						// Só adiciona se o valor for maior que 0 (Filtro Fake)
-						if (item.project_id && Number(item.project_id) > 0) {
-							qs.project_id = item.project_id;
-						}
-						if (item.client_id && Number(item.client_id) > 0) {
-							qs.client_id = item.client_id;
-						}
-						// Só adiciona se houver texto válido
-						if (item.responsible_id && item.responsible_id.trim() !== '') {
-							qs.responsible_id = item.responsible_id;
-						}
-						// Booleano é passado conforme selecionado
-						if (item.is_closed !== undefined) {
-							qs.is_closed = item.is_closed;
-						}
-					}
-				}
+					const responsibleId = instance.getNodeParameter('responsible_id', 0) as string | undefined;
+					if (typeof responsibleId === 'string' && responsibleId.trim() !== '') qs.responsible_id = responsibleId.trim();
 
-				// 3. Options (Collection) - Higienização para evitar enviar chaves vazias
-				const options = instance.getNodeParameter('options', 0, {}) as any;
-				if (options && typeof options === 'object' && Object.keys(options).length) {
-					for (const key of Object.keys(options)) {
-						const val = options[key];
-						if (val !== undefined && val !== '' && val !== 0) {
-							qs[key] = val;
-						}
+					const isClosed = instance.getNodeParameter('is_closed', 0) as string | undefined;
+					if (isClosed === 'true') {
+						qs.is_closed = true;
+					} else if (isClosed === 'false') {
+						qs.is_closed = false;
+					} else if (isClosed === 'all') {
+						// when user selects 'All', instruct API to bypass default status filtering
+						qs.bypass_status_default = true;
 					}
+				} catch (e) {
+					// If parameters are missing or malformed, ignore and continue
 				}
 				break;
 			}
@@ -488,7 +468,65 @@ export class Runrunit implements INodeType {
 
 		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
 		if (resp && resp.curl) return [[{ json: resp }]];
-		return [[{ json: resp }]];
+
+		// Defensive normalization of `resp` into a consistent array of objects
+		let parsedResp: any = resp;
+		if (typeof resp === 'string') {
+			try {
+				parsedResp = JSON.parse(resp);
+			} catch (e) {
+				// keep original string if parse fails
+				parsedResp = resp;
+			}
+		}
+
+		// Locate the array of data in common response shapes
+		let normalizedArray: any[] = [];
+		if (Array.isArray(parsedResp)) {
+			normalizedArray = parsedResp;
+		} else if (parsedResp && typeof parsedResp === 'object') {
+			const arr = parsedResp.tasks || parsedResp.data || parsedResp.items;
+			if (Array.isArray(arr)) {
+				normalizedArray = arr;
+			} else {
+				normalizedArray = [parsedResp];
+			}
+		} else {
+			// primitive (number/string/etc) — wrap so callers still get a single item
+			normalizedArray = [parsedResp];
+		}
+
+		// Ensure both `items` (return value) and `postItems` (filter input) use the exact same normalized list
+		const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
+		let postItems: INodeExecutionData[] = items.map((i) => i);
+
+		// Apply post-filters (Conditions) if configured
+		// Use (instance as any).filterInputData to satisfy TypeScript (method exists at runtime)
+		try {
+			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
+			const optionsParam = instance.getNodeParameter('options', 0, { ignoreCase: true, looseTypeValidation: true }) as any;
+
+			if (conditions && Object.keys(conditions).length > 0) {
+				if (!conditions.filter) conditions.filter = {};
+				if (typeof conditions.filter.caseSensitive === 'undefined') conditions.filter.caseSensitive = !optionsParam.ignoreCase;
+				if (typeof conditions.filter.typeValidation === 'undefined') conditions.filter.typeValidation = optionsParam.looseTypeValidation ? 'loose' : 'strict';
+
+				const { filteredItems } = (instance as any).filterInputData(postItems, conditions) as { filteredItems: INodeExecutionData[] };
+				if (Array.isArray(filteredItems)) {
+					postItems = filteredItems;
+				}
+			}
+
+			// replace items with post-filtered items
+			items.length = 0;
+			for (const it of postItems) items.push(it);
+		} catch (e) {
+			// log error to aid debugging of filter condition failures, but don't throw
+			// eslint-disable-next-line no-console
+			console.error('Runrunit: post-filter conditions failed', e);
+		}
+
+		return [items];
 	}
 
 }
