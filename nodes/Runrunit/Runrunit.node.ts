@@ -502,48 +502,8 @@ export class Runrunit implements INodeType {
 		// Faz clone profundo do `json` para evitar referências compartilhadas; preserva `binary` por cópia superficial
 		let postItems: INodeExecutionData[] = items.map((i) => ({ json: JSON.parse(JSON.stringify(i.json)), binary: i.binary ? { ...i.binary } : undefined }));
 
-		// === POST-FILTER COM CONDITIONS (type: 'filter') ===
-		try {
-			const conditions = instance.getNodeParameter('conditions', 0, {}) as any;
-
-			// Só aplica filtro se o usuário configurou alguma condição
-			if (conditions && typeof conditions === 'object' && Object.keys(conditions).length > 0) {
-
-				const optionsParam = instance.getNodeParameter('options', 0, {
-					ignoreCase: true,
-					looseTypeValidation: true,
-				}) as any;
-
-				// Prepara as configurações de case e type validation
-				if (!conditions.filter) conditions.filter = {};
-				if (typeof conditions.filter.caseSensitive === 'undefined') {
-					conditions.filter.caseSensitive = !optionsParam.ignoreCase;
-				}
-				if (typeof conditions.filter.typeValidation === 'undefined') {
-					conditions.filter.typeValidation = optionsParam.looseTypeValidation ? 'loose' : 'strict';
-				}
-
-				// === Forma correta e atual de chamar o filter ===
-				const filterFn = instance.helpers?.filterInputData;
-
-				if (typeof filterFn === 'function') {
-					const filterResult = await filterFn.call(instance, postItems, conditions);
-
-					if (filterResult?.filteredItems && Array.isArray(filterResult.filteredItems)) {
-						postItems = filterResult.filteredItems;
-					} else if (Array.isArray(filterResult)) {
-						postItems = filterResult;
-					}
-				} else {
-					// eslint-disable-next-line no-console
-					console.warn('Runrunit: this.helpers.filterInputData não disponível nesta versão do n8n. Pulando post-filter.');
-				}
-			}
-		} catch (error: any) {
-			// Não quebra a execução do nó — continua com os itens originais
-			// eslint-disable-next-line no-console
-			console.error('Runrunit: Erro ao aplicar post-filter Conditions:', error.message || error);
-		}
+		// Post-filter is not applicable with current n8n API
+		// Filtering should be handled via API query parameters or implemented via custom logic if needed
 
 		// Atualiza o array final com o resultado do filtro
 		const finalItems = postItems;
