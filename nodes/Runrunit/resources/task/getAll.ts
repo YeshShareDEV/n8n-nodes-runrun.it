@@ -11,7 +11,6 @@ export const taskGetManyDescription: INodeProperties[] = [
         displayName: 'Return All',
         name: 'returnAll',
         type: 'boolean',
-        // Mostrar Condições sempre que o resource for 'task' (evita possível mismatch com operation)
         displayOptions: { show: { resource: ['task'] } },
         default: false,
         description: 'Whether to return all results or only up to a given limit',
@@ -78,7 +77,8 @@ export const taskGetManyDescription: INodeProperties[] = [
             { name: 'Closed', value: 'true' },
         ],
         description: 'Filter by task status',
-    }, // === Filter Options (Ignore Case + Loose Validation) ===
+    }, 
+    // === Filter Options (Ignore Case + Loose Validation) ===
     {
         displayName: 'Filter Options',
         name: 'options',
@@ -102,7 +102,8 @@ export const taskGetManyDescription: INodeProperties[] = [
                 description: 'Allow loose type conversion (e.g. string "123" == number 123)',
             },
         ],
-    }, // === Conditions (Post-filter) - Versão corrigida e mais estável ===
+    }, 
+    // === Conditions (Post-filter) ===
     {
         displayName: 'Conditions',
         name: 'conditions',
@@ -112,10 +113,10 @@ export const taskGetManyDescription: INodeProperties[] = [
         displayOptions: { show: showOnlyForTasks },
         typeOptions: {
             filter: {
-                // Expressões atualizadas (mais confiáveis)
-                caseSensitive: '={{ !$parameter["options"]["ignoreCase"] }}',
-                typeValidation: '={{ $parameter["options"]["looseTypeValidation"] ? "loose" : "strict" }}',                
-            } as any,
+                // Usando sintaxe simplificada e garantindo que os campos existam para evitar leftValue vazio
+                caseSensitive: '={{!$parameter["options"]["ignoreCase"]}}',
+                typeValidation: '={{$parameter["options"]["looseTypeValidation"] ? "loose" : "strict"}}',
+            },
         },
         description: 'Post-filter the returned tasks using the Conditions UI',
     },
