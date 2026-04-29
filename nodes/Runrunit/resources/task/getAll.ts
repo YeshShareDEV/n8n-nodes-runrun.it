@@ -116,6 +116,7 @@ export const taskGetManyDescription: INodeProperties[] = [
                 // Usando sintaxe simplificada e garantindo que os campos existam para evitar leftValue vazio
                 caseSensitive: '={{!$parameter["options"]["ignoreCase"]}}',
                 typeValidation: '={{$parameter["options"]["looseTypeValidation"] ? "loose" : "strict"}}',
+                version: 1
             },
         },
         description: 'Post-filter the returned tasks using the Conditions UI',
