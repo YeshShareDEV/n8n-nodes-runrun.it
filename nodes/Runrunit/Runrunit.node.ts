@@ -303,6 +303,7 @@ export class Runrunit implements INodeType {
 			// Exibe o retorno bruto no log do servidor n8n
 			console.log('--- DEBUG RUNRUNIT GETALL ---');
 			console.log('Resource:', resource);
+			console.log('tipo Retornado:', Array.isArray(resp) ? 'array' : typeof resp);
 			console.log('Payload Retornado:', JSON.stringify(resp, null, 2));
 
 			let normalizedArray: any[] = [];
