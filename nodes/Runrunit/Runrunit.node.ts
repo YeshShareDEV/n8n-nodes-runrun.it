@@ -316,6 +316,8 @@ export class Runrunit implements INodeType {
 
 			console.log('--- DEBUG FILTROS ---');
 			console.log('Raw Conditions:', JSON.stringify(rawConditions, null, 2));
+			console.log('Conditions:', JSON.stringify(rawConditions.conditions, null, 2));
+			console.log('teste:', rawConditions.conditions && rawConditions.conditions.length > 0);
 
 			let finalItems: INodeExecutionData[] = items;
 
