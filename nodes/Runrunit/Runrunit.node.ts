@@ -261,7 +261,6 @@ export class Runrunit implements INodeType {
 		return [returnData];
 	}
 
-	// Runrunit.node.ts - Excerto corrigido do método handleGetAll
 	private static async handleGetAll(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
 		const returnData: INodeExecutionData[] = [];
 		const inputCount = Math.max(1, instance.getInputData().length);
@@ -281,7 +280,6 @@ export class Runrunit implements INodeType {
 			if (resource === 'task') {
 				path = '/tasks';
 
-				// Filtros nativos extraídos do seu arquivo getAll.ts
 				const search = instance.getNodeParameter('search_term', i, '') as string;
 				if (search) qs.search_term = search;
 
@@ -300,8 +298,6 @@ export class Runrunit implements INodeType {
 
 			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
 
-			// Exibe o retorno bruto no log do servidor n8n
-
 			let normalizedArray: any[] = [];
 			if (Array.isArray(resp)) normalizedArray = resp;
 			else if (resp && typeof resp === 'object') {
@@ -310,37 +306,39 @@ export class Runrunit implements INodeType {
 
 			const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
 
-			// --- LÓGICA DE FILTRO CORRIGIDA ---
-			const uiOptions = instance.getNodeParameter('options', i) as any || {};
-			const rawConditions = instance.getNodeParameter('conditions', i) as any || {};			
-			
+			// --- LÓGICA DE FILTRO (fixedCollection) ---
+			const filtersCollection = instance.getNodeParameter('filters', i) as {
+				filter?: Array<{ field: string; operator: string; value: string }>;
+			};
+			const filters = filtersCollection?.filter ?? [];
 
-			let finalItems: INodeExecutionData[] = items;
+			const finalItems = items.filter((item) => {
+				const json = item.json as Record<string, any>;
 
-			if (rawConditions.conditions && rawConditions.conditions.length > 0) {
-				try {
-					const filterHelper = (instance.helpers as any).filterInputData;
-					console.log('--- DEBUG FILTROS ---');
-					console.log('tipo:', typeof filterHelper);
-					if (typeof filterHelper === 'function') {
-						const filterPayload = {
-							conditions: rawConditions.conditions,
-							combinator: rawConditions.combinator || 'and',
-							options: {
-								caseSensitive: !!(uiOptions.ignoreCase !== false),
-								typeValidation: uiOptions.looseTypeValidation ? 'loose' : 'strict',
-							}
-						};
-						const result = filterHelper(items, filterPayload);
-						finalItems = Array.isArray(result) ? result : (result.filteredItems || []);
+				return filters.every((f) => {
+					const itemValue = json[f.field];
+					const filterValue = f.value;
+
+					if (f.operator === 'equals') {
+						return String(itemValue) === String(filterValue);
+					} else if (f.operator === 'contains') {
+						return String(itemValue).includes(filterValue);
+					} else if (f.operator === 'gt') {
+						return Number(itemValue) > Number(filterValue);
+					} else if (f.operator === 'lt') {
+						return Number(itemValue) < Number(filterValue);
+					} else if (f.operator === 'isTrue') {
+						return itemValue === true || itemValue === 'true';
+					} else if (f.operator === 'isFalse') {
+						return itemValue === false || itemValue === 'false';
 					}
-				} catch (err) {
-					console.log('Runrunit: Falha no helper de filtro:', err);
-				}
-			}
+					return true;
+				});
+			});
 
 			for (const it of finalItems) returnData.push(it);
 		}
+
 		return [returnData];
 	}
 }
