@@ -228,11 +228,37 @@ export class Runrunit implements INodeType {
 	}
 
 	private static async handleGet(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
-		let path = '';
-		const qsObj: Record<string, any> = {};
-		// ... (lógica de mapeamento de path permanece a mesma)
-		const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qsObj);
-		return [[{ json: resp }]];
+		const returnData: INodeExecutionData[] = [];
+		const inputData = instance.getInputData();
+
+		for (let i = 0; i < inputData.length; i++) {
+			let path = '';
+			const qsObj: Record<string, any> = {};
+
+			if (resource === 'user') {
+				// Captura o ID do campo definido no get.ts
+				const userId = instance.getNodeParameter('userId', i) as string;
+
+				if (!userId) {
+					throw new NodeOperationError(instance.getNode(), 'O campo User ID é obrigatório para a operação Get.');
+				}
+
+				// Monta o caminho dinâmico para a API: /users/{id}
+				path = `/users/${userId}`;
+			} else if (resource === 'task') {
+				const taskId = instance.getNodeParameter('taskId', i) as string;
+				path = `/tasks/${taskId}`;
+			}
+
+			// Se o path não foi definido, pula para a próxima entrada
+			if (!path) continue;
+
+			// Faz a requisição GET
+			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qsObj);
+			returnData.push({ json: resp });
+		}
+
+		return [returnData];
 	}
 
 	// Runrunit.node.ts - Excerto corrigido do método handleGetAll
@@ -273,6 +299,11 @@ export class Runrunit implements INodeType {
 			}
 
 			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
+
+			// Exibe o retorno bruto no log do servidor n8n
+			console.log('--- DEBUG RUNRUNIT GETALL ---');
+			console.log('Resource:', resource);
+			console.log('Payload Retornado:', JSON.stringify(resp, null, 2));
 
 			let normalizedArray: any[] = [];
 			if (Array.isArray(resp)) normalizedArray = resp;
