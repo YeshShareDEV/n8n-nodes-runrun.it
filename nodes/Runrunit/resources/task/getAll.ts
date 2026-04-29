@@ -6,7 +6,7 @@ const showOnlyForTasks = {
 };
 
 export const taskGetManyDescription: INodeProperties[] = [
-    // === Filtros da API (antes do post-filter) ===
+    // === Filtros da API (Filtros nativos do Runrunit) ===
     {
         displayName: 'Return All',
         name: 'returnAll',
@@ -78,7 +78,7 @@ export const taskGetManyDescription: INodeProperties[] = [
         ],
         description: 'Filter by task status',
     }, 
-    // === Filter Options (Ignore Case + Loose Validation) ===
+    // === Filter Options (Configurações do Post-filter) ===
     {
         displayName: 'Filter Options',
         name: 'options',
@@ -103,7 +103,7 @@ export const taskGetManyDescription: INodeProperties[] = [
             },
         ],
     }, 
-    // === Conditions (Post-filter) ===
+    // === Conditions (Post-filter / Filtragem Pós-API) ===
     {
         displayName: 'Conditions',
         name: 'conditions',
@@ -113,7 +113,7 @@ export const taskGetManyDescription: INodeProperties[] = [
         displayOptions: { show: showOnlyForTasks },
         typeOptions: {
             filter: {
-                // Usando sintaxe simplificada e garantindo que os campos existam para evitar leftValue vazio
+                // Sincronização com o objeto 'options' acima
                 caseSensitive: '={{!$parameter["options"]["ignoreCase"]}}',
                 typeValidation: '={{$parameter["options"]["looseTypeValidation"] ? "loose" : "strict"}}',
                 version: 1

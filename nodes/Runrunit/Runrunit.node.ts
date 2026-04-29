@@ -179,52 +179,50 @@ export class Runrunit implements INodeType {
 		return [[{ json: resp }]];
 	}
 
+	// Runrunit.node.ts - Excerto corrigido do método handleGetAll
 	private static async handleGetAll(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
 		const returnData: INodeExecutionData[] = [];
 		const inputCount = Math.max(1, instance.getInputData().length);
 
 		for (let i = 0; i < inputCount; i++) {
-			const qs: Record<string, any> = {};
-			const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
-			if (returnAll) {
-				qs.limit = 1000; // Runrunit costuma limitar a 1000 por página
-			} else {
-				qs.limit = instance.getNodeParameter('limit', i, 50);
-				qs.page = instance.getNodeParameter('page', i, 1);
-			}
-
 			let path = '';
-			// Define o path baseado no recurso (mantendo sua lógica original)
-			if (resource === 'task') {
-				path = '/tasks';
-				const search = instance.getNodeParameter('search_term', i, '') as string;
-				if (search) qs.search_term = search;
-			} else if (resource === 'clients') {
-				path = '/clients';
-			} // ... adicione os outros recursos conforme sua necessidade
+			const qs: Record<string, any> = {};
+			// TODO: Add resource-specific path and query string logic here
 
 			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
-			
+
 			let normalizedArray: any[] = [];
-			if (Array.isArray(resp)) normalizedArray = resp;
-			else if (resp && typeof resp === 'object') {
-				normalizedArray = resp.tasks || resp.data || resp.items || [resp];
+			if (Array.isArray(resp)) {
+				normalizedArray = resp;
+			} else if (resp && typeof resp === 'object') {
+				const arr = resp.tasks || resp.data || resp.items;
+				normalizedArray = Array.isArray(arr) ? arr : [resp];
 			}
 
 			const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
 
-			// --- LÓGICA DE FILTRO CORRIGIDA ---
-			const conditions = instance.getNodeParameter('conditions', i, {}) as any;
-			
-			console.log(`Runrunit: Filtrando ${items.length} itens...`);
-			
-			let finalItems = items;
-			if (conditions.conditions && conditions.conditions.length > 0) {
+			// --- LÓGICA DE FILTRAGEM CORRIGIDA ---
+			const uiOptions = instance.getNodeParameter('options', i) as any || {};
+			const rawConditions = instance.getNodeParameter('conditions', i) as any || {};
+
+			let finalItems: INodeExecutionData[] = items;
+
+			// Verifica se existem condições reais antes de tentar filtrar
+			if (rawConditions.conditions && rawConditions.conditions.length > 0) {
 				try {
 					const filterHelper = (instance.helpers as any).filterInputData;
 					if (typeof filterHelper === 'function') {
-						// Passamos o objeto 'conditions' que já contém 'options' (configurado no getAll.ts)
-						const result = filterHelper(items, conditions);
+						// Reconstrução do payload para evitar campos vazios na raiz (como o leftValue: '')
+						const filterPayload = {
+							conditions: rawConditions.conditions,
+							combinator: rawConditions.combinator || 'and',
+							options: {
+								caseSensitive: !!(uiOptions.ignoreCase !== false),
+								typeValidation: uiOptions.looseTypeValidation ? 'loose' : 'strict',
+							}
+						};
+
+						const result = filterHelper(items, filterPayload);
 						finalItems = Array.isArray(result) ? result : (result.filteredItems || []);
 					}
 				} catch (err) {
@@ -232,10 +230,8 @@ export class Runrunit implements INodeType {
 				}
 			}
 
-			console.log(`Runrunit: Resultou em ${finalItems.length} itens após filtro.`);
-			returnData.push(...finalItems);
+			for (const it of finalItems) returnData.push(it);
 		}
-
 		return [returnData];
 	}
 }
