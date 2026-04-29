@@ -301,10 +301,6 @@ export class Runrunit implements INodeType {
 			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
 
 			// Exibe o retorno bruto no log do servidor n8n
-			console.log('--- DEBUG RUNRUNIT GETALL ---');
-			console.log('Resource:', resource);
-			console.log('tipo Retornado:', Array.isArray(resp) ? 'array' : typeof resp);
-			console.log('Payload Retornado:', JSON.stringify(resp, null, 2));
 
 			let normalizedArray: any[] = [];
 			if (Array.isArray(resp)) normalizedArray = resp;
@@ -317,6 +313,9 @@ export class Runrunit implements INodeType {
 			// --- LÓGICA DE FILTRO CORRIGIDA ---
 			const uiOptions = instance.getNodeParameter('options', i) as any || {};
 			const rawConditions = instance.getNodeParameter('conditions', i) as any || {};
+
+			console.log('--- DEBUG FILTROS ---');
+			console.log('Raw Conditions:', JSON.stringify(rawConditions, null, 2));
 
 			let finalItems: INodeExecutionData[] = items;
 
