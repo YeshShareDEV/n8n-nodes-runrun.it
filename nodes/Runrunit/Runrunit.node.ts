@@ -335,7 +335,7 @@ export class Runrunit implements INodeType {
 						finalItems = Array.isArray(result) ? result : (result.filteredItems || []);
 					}
 				} catch (err) {
-					console.warn('Runrunit: Falha no helper de filtro:', err);
+					console.log('Runrunit: Falha no helper de filtro:', err);
 				}
 			}
 
