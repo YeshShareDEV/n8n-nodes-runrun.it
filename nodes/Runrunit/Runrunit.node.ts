@@ -306,35 +306,85 @@ export class Runrunit implements INodeType {
 
 			const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
 
-			// --- LÓGICA DE FILTRO (fixedCollection) ---
-			const filtersCollection = instance.getNodeParameter('filters', i) as {
-				filter?: Array<{ field: string; operator: string; value: string }>;
-			};
-			const filters = filtersCollection?.filter ?? [];
+			// Safe deep-clone for post-filter input to avoid side-effects
+			const postItems: INodeExecutionData[] = items.map((it) => ({ json: JSON.parse(JSON.stringify(it.json)), binary: it.binary ? { ...it.binary } : undefined }));
 
-			const finalItems = items.filter((item) => {
-				const json = item.json as Record<string, any>;
+			// Try to read `conditions` and `options` params safely — some node versions may not have them
+			let rawConditions: any = {};
+			let uiOptions: any = {};
+			try {
+				rawConditions = instance.getNodeParameter('conditions', i) as any || {};
+			} catch (e) {
+				rawConditions = {};
+			}
+			try {
+				uiOptions = instance.getNodeParameter('options', i) as any || {};
+			} catch (e) {
+				uiOptions = {};
+			}
 
-				return filters.every((f) => {
-					const itemValue = json[f.field];
-					const filterValue = f.value;
+			let finalItems: INodeExecutionData[] = postItems;
 
-					if (f.operator === 'equals') {
-						return String(itemValue) === String(filterValue);
-					} else if (f.operator === 'contains') {
-						return String(itemValue).includes(filterValue);
-					} else if (f.operator === 'gt') {
-						return Number(itemValue) > Number(filterValue);
-					} else if (f.operator === 'lt') {
-						return Number(itemValue) < Number(filterValue);
-					} else if (f.operator === 'isTrue') {
-						return itemValue === true || itemValue === 'true';
-					} else if (f.operator === 'isFalse') {
-						return itemValue === false || itemValue === 'false';
+			const providedConditions = rawConditions.conditions ?? rawConditions.filter ?? rawConditions;
+			const hasConditions = providedConditions && ((Array.isArray(providedConditions) && providedConditions.length > 0) || (typeof providedConditions === 'object' && Object.keys(providedConditions).length > 0));
+
+			if (hasConditions) {
+				try {
+					const filterHelper = (instance.helpers as any)?.filterInputData;
+					if (typeof filterHelper === 'function') {
+						if (!rawConditions.filter) rawConditions.filter = {};
+						if (typeof rawConditions.filter.caseSensitive === 'undefined') rawConditions.filter.caseSensitive = !uiOptions.ignoreCase;
+						if (typeof rawConditions.filter.typeValidation === 'undefined') rawConditions.filter.typeValidation = uiOptions.looseTypeValidation ? 'loose' : 'strict';
+
+						const payload = {
+							conditions: providedConditions,
+							combinator: rawConditions.combinator ?? 'and',
+							options: {
+								caseSensitive: !!rawConditions.filter.caseSensitive,
+								typeValidation: rawConditions.filter.typeValidation,
+							},
+						};
+
+						const result = await (filterHelper as any).call(instance, postItems, payload);
+						if (Array.isArray(result)) finalItems = result;
+						else if (result && Array.isArray(result.filteredItems)) finalItems = result.filteredItems;
 					}
-					return true;
-				});
-			});
+				} catch (err: any) {
+					// do not break execution on filter errors
+					// eslint-disable-next-line no-console
+					console.error('Runrunit: erro ao aplicar post-filter conditions:', err?.message ?? err);
+					finalItems = postItems;
+				}
+			} else {
+				// Fallback: apply existing fixedCollection `filters` if present
+				const filtersCollection = ((): { filter?: Array<{ field: string; operator: string; value: string }> } => {
+					try {
+						return instance.getNodeParameter('filters', i) as any;
+					} catch (e) {
+						return { filter: [] };
+					}
+				})();
+				const filters = filtersCollection?.filter ?? [];
+
+				if (filters.length > 0) {
+					finalItems = postItems.filter((item) => {
+						const json = item.json as Record<string, any>;
+
+						return filters.every((f) => {
+							const itemValue = json[f.field];
+							const filterValue = f.value;
+
+							if (f.operator === 'equals') return String(itemValue) === String(filterValue);
+							if (f.operator === 'contains') return String(itemValue).includes(filterValue);
+							if (f.operator === 'gt') return Number(itemValue) > Number(filterValue);
+							if (f.operator === 'lt') return Number(itemValue) < Number(filterValue);
+							if (f.operator === 'isTrue') return itemValue === true || itemValue === 'true';
+							if (f.operator === 'isFalse') return itemValue === false || itemValue === 'false';
+							return true;
+						});
+					});
+				}
+			}
 
 			for (const it of finalItems) returnData.push(it);
 		}
