@@ -187,32 +187,43 @@ export class Runrunit implements INodeType {
 		for (let i = 0; i < inputCount; i++) {
 			let path = '';
 			const qs: Record<string, any> = {};
-			// TODO: Add resource-specific path and query string logic here
+
+			const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
+			if (returnAll) {
+				qs.limit = 1000;
+			} else {
+				qs.limit = instance.getNodeParameter('limit', i, 50);
+				qs.page = instance.getNodeParameter('page', i, 1);
+			}
+
+			if (resource === 'task') {
+				path = '/tasks';
+				const search = instance.getNodeParameter('search_term', i, '') as string;
+				if (search) qs.search_term = search;
+			} else if (resource === 'clients') {
+				path = '/clients';
+			}
 
 			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
-
+			
 			let normalizedArray: any[] = [];
-			if (Array.isArray(resp)) {
-				normalizedArray = resp;
-			} else if (resp && typeof resp === 'object') {
-				const arr = resp.tasks || resp.data || resp.items;
-				normalizedArray = Array.isArray(arr) ? arr : [resp];
+			if (Array.isArray(resp)) normalizedArray = resp;
+			else if (resp && typeof resp === 'object') {
+				normalizedArray = resp.tasks || resp.data || resp.items || [resp];
 			}
 
 			const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
 
-			// --- LÓGICA DE FILTRAGEM CORRIGIDA ---
+			// --- LÓGICA DE FILTRO CORRIGIDA ---
 			const uiOptions = instance.getNodeParameter('options', i) as any || {};
 			const rawConditions = instance.getNodeParameter('conditions', i) as any || {};
 
 			let finalItems: INodeExecutionData[] = items;
 
-			// Verifica se existem condições reais antes de tentar filtrar
 			if (rawConditions.conditions && rawConditions.conditions.length > 0) {
 				try {
 					const filterHelper = (instance.helpers as any).filterInputData;
 					if (typeof filterHelper === 'function') {
-						// Reconstrução do payload para evitar campos vazios na raiz (como o leftValue: '')
 						const filterPayload = {
 							conditions: rawConditions.conditions,
 							combinator: rawConditions.combinator || 'and',
@@ -221,7 +232,6 @@ export class Runrunit implements INodeType {
 								typeValidation: uiOptions.looseTypeValidation ? 'loose' : 'strict',
 							}
 						};
-
 						const result = filterHelper(items, filterPayload);
 						finalItems = Array.isArray(result) ? result : (result.filteredItems || []);
 					}
