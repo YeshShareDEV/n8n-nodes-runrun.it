@@ -155,12 +155,38 @@ export class Runrunit implements INodeType {
 	}*/
 
 	private static async handleCreate(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
-		let path = '';
-		let requestBody: any = {};
-		// ... (lógica de mapeamento de path permanece a mesma de antes)
-		// Simplificado para brevidade, mantenha suas implementações de path/body aqui
-		const resp = await Runrunit.makeRequest(instance, 'POST', path, requestBody);
-		return [[{ json: resp }]];
+		const returnData: INodeExecutionData[] = [];
+		const inputData = instance.getInputData();
+
+		for (let i = 0; i < inputData.length; i++) {
+			let path = '';
+			let body: any = {};
+
+			if (resource === 'user') {
+				path = '/users';
+				// 1. Vai buscar o objeto JSON que o utilizador preencheu na UI
+				const userPayload = instance.getNodeParameter('userObject', i) as any;
+
+				// 2. Se for uma string (texto puro), transforma em objeto JSON real
+				const userData = typeof userPayload === 'string' ? JSON.parse(userPayload) : userPayload;
+
+				// 3. Monta o corpo conforme a API espera (envolvido na chave 'user' ou direto)
+				body = {
+					user: userData,
+					make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', i),
+				};
+			} else if (resource === 'task') {
+				path = '/tasks';
+				// Repita a lógica para buscar os parâmetros de task aqui
+			}
+
+			// Garante que o path não está vazio antes de enviar (evita o 404)
+			if (path) {
+				const resp = await Runrunit.makeRequest(instance, 'POST', path, body);
+				returnData.push({ json: resp });
+			}
+		}
+		return [returnData];
 	}
 
 	private static async handleUpdate(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
@@ -198,14 +224,26 @@ export class Runrunit implements INodeType {
 
 			if (resource === 'task') {
 				path = '/tasks';
+
+				// Filtros nativos extraídos do seu arquivo getAll.ts
 				const search = instance.getNodeParameter('search_term', i, '') as string;
 				if (search) qs.search_term = search;
+
+				const projectId = instance.getNodeParameter('project_id', i, 0) as number;
+				if (projectId !== 0) qs.project_id = projectId;
+
+				const responsibleId = instance.getNodeParameter('responsible_id', i, '') as string;
+				if (responsibleId) qs.responsible_id = responsibleId;
+
+				const isClosed = instance.getNodeParameter('is_closed', i, 'all') as string;
+				if (isClosed !== 'all') qs.is_closed = isClosed;
+
 			} else if (resource === 'clients') {
 				path = '/clients';
 			}
 
 			const resp = await Runrunit.makeRequest(instance, 'GET', path, {}, qs);
-			
+
 			let normalizedArray: any[] = [];
 			if (Array.isArray(resp)) normalizedArray = resp;
 			else if (resp && typeof resp === 'object') {
