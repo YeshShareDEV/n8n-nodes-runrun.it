@@ -79,61 +79,64 @@ export const taskGetManyDescription: INodeProperties[] = [
         description: 'Filter by task status',
     }, // === Filter Options (collection) ===
     {
-        displayName: 'Filter Options',
-        name: 'options',
-        type: 'collection',
-        placeholder: 'Add Option',
+        displayName: 'Filters',
+        name: 'filters',
+        type: 'fixedCollection',
+        typeOptions: {
+            multipleValues: true,
+            multipleValueButtonText: 'Add Filter',
+        },
         default: {},
+        placeholder: 'Add Filter',
         displayOptions: { show: showOnlyForTasks },
+        description: 'Filter tasks by field value',
         options: [
             {
-                displayName: 'Ignore Case',
-                name: 'ignoreCase',
-                type: 'boolean',
-                default: true,
-                description: 'Whether comparisons should be case-insensitive',
-            },
-            {
-                displayName: 'Loose Type Validation',
-                name: 'looseTypeValidation',
-                type: 'boolean',
-                default: true,
-                description: 'Allow loose type conversion (e.g. string "123" == number 123)',
-            }, // Campos disponíveis para filtrar (seleção múltipla)
-            {
-                displayName: 'Fields to Filter',
-                name: 'fieldsToFilter',
-                type: 'multiOptions',
-                options: [
-                    { name: 'Task ID', value: 'id' },
-                    { name: 'Title', value: 'title' },
-                    { name: 'Project Name', value: 'project_name' },
-                    { name: 'Client Name', value: 'client_name' },
-                    { name: 'Priority', value: 'priority' },
-                    { name: 'Created At', value: 'created_at' },
-                    { name: 'Is Working On', value: 'is_working_on' },
-                    { name: 'Time Worked (Sec)', value: 'time_worked' },
+                displayName: 'Filter',
+                name: 'filter',
+                values: [
+                    {
+                        displayName: 'Field',
+                        name: 'field',
+                        type: 'options',
+                        options: [
+                            { name: 'Task ID', value: 'id' },
+                            { name: 'Title', value: 'title' },
+                            { name: 'Project Name', value: 'project_name' },
+                            { name: 'Client Name', value: 'client_name' },
+                            { name: 'Priority', value: 'priority' },
+                            { name: 'Created At', value: 'created_at' },
+                            { name: 'Is Working On', value: 'is_working_on' },
+                            { name: 'Time Worked (Sec)', value: 'time_worked' },
+                        ],
+                        default: 'title',
+                        description: 'The field to filter by',
+                    },
+                    {
+                        displayName: 'Operator',
+                        name: 'operator',
+                        type: 'options',
+                        options: [
+                            { name: 'Equals', value: 'equals' },
+                            { name: 'Contains', value: 'contains' },
+                            { name: 'Greater Than', value: 'gt' },
+                            { name: 'Less Than', value: 'lt' },
+                            { name: 'Is True', value: 'isTrue' },
+                            { name: 'Is False', value: 'isFalse' },
+                        ],
+                        default: 'equals',
+                        description: 'The comparison operator',
+                    },
+                    {
+                        displayName: 'Value',
+                        name: 'value',
+                        type: 'string',
+                        default: '',
+                        description: 'The value to compare against',
+                    },
                 ],
-                default: [],
-                description: 'Select which fields to use in filtering',
             },
         ],
-    }, // === Conditions (filter) ===
-    {
-        displayName: 'Conditions',
-        name: 'conditions',
-        placeholder: 'Add Condition',
-        type: 'filter',
-        default: {},
-        displayOptions: { show: showOnlyForTasks },
-        typeOptions: {
-            filter: {
-                caseSensitive: '={{!$parameter["options"]["ignoreCase"]}}',
-                typeValidation: '={{$parameter["options"]["looseTypeValidation"] ? "loose" : "strict"}}',
-                version: 1,
-            },
-        },
-        description: 'Post-filter the returned tasks using the Conditions UI',
     },
 
 ];
