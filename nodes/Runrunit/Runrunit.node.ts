@@ -190,11 +190,41 @@ export class Runrunit implements INodeType {
 	}
 
 	private static async handleUpdate(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
-		let path = '';
-		let requestBody: any = {};
-		// ... (lógica de mapeamento de path permanece a mesma)
-		const resp = await Runrunit.makeRequest(instance, 'PUT', path, requestBody);
-		return [[{ json: resp }]];
+		const returnData: INodeExecutionData[] = [];
+		const inputData = instance.getInputData();
+
+		for (let i = 0; i < inputData.length; i++) {
+			let path = '';
+			let body: any = {};
+
+			if (resource === 'user') {
+				// 1. Pega o ID para montar a URL: /users/{id}
+				const userId = instance.getNodeParameter('userId', i) as string;
+				path = `/users/${userId}`;
+
+				// 2. Trata o objeto JSON (userObject)
+				const userPayload = instance.getNodeParameter('userObject', i) as any;
+				const userData = typeof userPayload === 'string' ? JSON.parse(userPayload) : userPayload;
+
+				// 3. Monta o corpo conforme definido no seu update.ts
+				body = {
+					user: userData,
+					make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', i),
+				};
+			} else if (resource === 'task') {
+				const taskId = instance.getNodeParameter('taskId', i) as string;
+				path = `/tasks/${taskId}`;
+				// lógica de body para task...
+			}
+
+			if (!path) throw new NodeOperationError(instance.getNode(), `Caminho de update não definido para: ${resource}`);
+
+			// 4. Executa o PUT
+			const resp = await Runrunit.makeRequest(instance, 'PUT', path, body);
+			returnData.push({ json: resp });
+		}
+
+		return [returnData];
 	}
 
 	private static async handleGet(instance: IExecuteFunctions, resource: string): Promise<INodeExecutionData[][]> {
