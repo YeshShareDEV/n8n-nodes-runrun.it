@@ -314,16 +314,16 @@ export class Runrunit implements INodeType {
 			const uiOptions = instance.getNodeParameter('options', i) as any || {};
 			const rawConditions = instance.getNodeParameter('conditions', i) as any || {};
 
-			console.log('--- DEBUG FILTROS ---');
-			console.log('Raw Conditions:', JSON.stringify(rawConditions, null, 2));
-			console.log('Conditions:', JSON.stringify(rawConditions.conditions, null, 2));
-			console.log('teste:', rawConditions.conditions && rawConditions.conditions.length > 0);
+			
+			
 
 			let finalItems: INodeExecutionData[] = items;
 
 			if (rawConditions.conditions && rawConditions.conditions.length > 0) {
 				try {
 					const filterHelper = (instance.helpers as any).filterInputData;
+					console.log('--- DEBUG FILTROS ---');
+					console.log('tipo:', typeof filterHelper);
 					if (typeof filterHelper === 'function') {
 						const filterPayload = {
 							conditions: rawConditions.conditions,
