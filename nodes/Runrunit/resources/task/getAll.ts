@@ -77,14 +77,13 @@ export const taskGetManyDescription: INodeProperties[] = [
             { name: 'Closed', value: 'true' },
         ],
         description: 'Filter by task status',
-    }, 
-    // === Filter Options (Configurações do Post-filter) ===
+    }, // === Filter Options (collection) ===
     {
         displayName: 'Filter Options',
         name: 'options',
         type: 'collection',
         placeholder: 'Add Option',
-        default: { ignoreCase: true, looseTypeValidation: true },
+        default: {},
         displayOptions: { show: showOnlyForTasks },
         options: [
             {
@@ -100,10 +99,26 @@ export const taskGetManyDescription: INodeProperties[] = [
                 type: 'boolean',
                 default: true,
                 description: 'Allow loose type conversion (e.g. string "123" == number 123)',
+            }, // Campos disponíveis para filtrar (seleção múltipla)
+            {
+                displayName: 'Fields to Filter',
+                name: 'fieldsToFilter',
+                type: 'multiOptions',
+                options: [
+                    { name: 'Task ID', value: 'id' },
+                    { name: 'Title', value: 'title' },
+                    { name: 'Project Name', value: 'project_name' },
+                    { name: 'Client Name', value: 'client_name' },
+                    { name: 'Priority', value: 'priority' },
+                    { name: 'Created At', value: 'created_at' },
+                    { name: 'Is Working On', value: 'is_working_on' },
+                    { name: 'Time Worked (Sec)', value: 'time_worked' },
+                ],
+                default: [],
+                description: 'Select which fields to use in filtering',
             },
         ],
-    }, 
-    // === Conditions (Post-filter / Filtragem Pós-API) ===
+    }, // === Conditions (filter) ===
     {
         displayName: 'Conditions',
         name: 'conditions',
@@ -113,12 +128,12 @@ export const taskGetManyDescription: INodeProperties[] = [
         displayOptions: { show: showOnlyForTasks },
         typeOptions: {
             filter: {
-                // Sincronização com o objeto 'options' acima
                 caseSensitive: '={{!$parameter["options"]["ignoreCase"]}}',
                 typeValidation: '={{$parameter["options"]["looseTypeValidation"] ? "loose" : "strict"}}',
-                version: 1
+                version: 1,
             },
         },
         description: 'Post-filter the returned tasks using the Conditions UI',
     },
+
 ];

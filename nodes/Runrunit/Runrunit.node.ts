@@ -312,9 +312,7 @@ export class Runrunit implements INodeType {
 
 			// --- LÓGICA DE FILTRO CORRIGIDA ---
 			const uiOptions = instance.getNodeParameter('options', i) as any || {};
-			const rawConditions = instance.getNodeParameter('conditions', i) as any || {};
-
-			
+			const rawConditions = instance.getNodeParameter('conditions', i) as any || {};			
 			
 
 			let finalItems: INodeExecutionData[] = items;
