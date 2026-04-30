@@ -24,7 +24,7 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   for (let i = 0; i < inputCount; i++) {
     const qs: Record<string, any> = {};
     const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
-    if (returnAll) qs.limit = 1000;
+    if (returnAll) qs.limit = 99000;
     else { qs.limit = instance.getNodeParameter('limit', i, 50); qs.page = instance.getNodeParameter('page', i, 1); }
     const resp = await makeRequest(instance, 'GET', '/projects/filters', {}, qs);
     let normalizedArray: any[] = [];
@@ -43,8 +43,12 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
   for (let i = 0; i < inputCount; i++) {
     const qs: Record<string, any> = {};
     const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
-    if (returnAll) qs.limit = 1000;
+    if (returnAll) qs.limit = 99000;
     else { qs.limit = instance.getNodeParameter('limit', i, 50); qs.page = instance.getNodeParameter('page', i, 1); }
+    const clientId = instance.getNodeParameter('client_id', i, 0) as number;
+    if (clientId !== 0) qs.client_id = clientId;
+    const projectGroupId = instance.getNodeParameter('project_group_id', i, 0) as number;
+    if (projectGroupId !== 0) qs.project_group_id = projectGroupId;
     const resp = await makeRequest(instance, 'GET', '/projects', {}, qs);
     let normalizedArray: any[] = [];
     if (Array.isArray(resp)) normalizedArray = resp;

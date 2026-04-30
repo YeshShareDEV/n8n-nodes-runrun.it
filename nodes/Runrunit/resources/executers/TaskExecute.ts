@@ -64,7 +64,7 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   for (let i = 0; i < inputCount; i++) {
     const qs: Record<string, any> = {};
     const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
-    if (returnAll) qs.limit = 1000;
+    if (returnAll) qs.limit = 99000;
     else {
       qs.limit = instance.getNodeParameter('limit', i, 50);
       qs.page = instance.getNodeParameter('page', i, 1);
@@ -78,6 +78,9 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
 
     const responsibleId = instance.getNodeParameter('responsible_id', i, '') as string;
     if (responsibleId) qs.responsible_id = responsibleId;
+
+    const clientId = instance.getNodeParameter('client_id', i, 0) as number;
+    if (clientId !== 0) qs.client_id = clientId;
 
     const isClosed = instance.getNodeParameter('is_closed', i, 'all') as string;
     if (isClosed !== 'all') qs.is_closed = isClosed;

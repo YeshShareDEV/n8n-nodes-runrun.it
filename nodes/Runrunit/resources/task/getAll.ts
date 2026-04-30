@@ -58,6 +58,14 @@ export const taskGetManyDescription: INodeProperties[] = [
         description: 'Filter by project id (0 = ignore)',
     },
     {
+        displayName: 'Client ID',
+        name: 'client_id',
+        type: 'number',
+        displayOptions: { show: showOnlyForTasks },
+        default: 0,
+        description: 'Filter by client id (0 = ignore)',
+    },
+    {
         displayName: 'Responsible ID',
         name: 'responsible_id',
         type: 'string',

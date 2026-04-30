@@ -31,4 +31,20 @@ export const projectsGetManyDescription: INodeProperties[] = [
     default: 1,
     description: 'Page number for pagination',
   },
+  {
+    displayName: 'Client ID',
+    name: 'client_id',
+    type: 'number',
+    displayOptions: { show: showOnlyForProjects },
+    default: 1242332,
+    description: 'Filter by client id (default prefilled)',
+  },
+  {
+    displayName: 'Project Group ID',
+    name: 'project_group_id',
+    type: 'number',
+    displayOptions: { show: showOnlyForProjects },
+    default: 1377550,
+    description: 'Filter by project group id (default prefilled)',
+  },
 ];

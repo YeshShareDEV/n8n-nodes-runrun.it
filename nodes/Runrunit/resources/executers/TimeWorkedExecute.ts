@@ -51,7 +51,7 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   for (let i = 0; i < inputCount; i++) {
     const qs: Record<string, any> = {};
     const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
-    if (returnAll) qs.limit = 1000;
+    if (returnAll) qs.limit = 99000;
     else { qs.limit = instance.getNodeParameter('limit', i, 50); qs.page = instance.getNodeParameter('page', i, 1); }
     const resp = await makeRequest(instance, 'GET', '/time_worked', {}, qs);
     let normalizedArray: any[] = [];
