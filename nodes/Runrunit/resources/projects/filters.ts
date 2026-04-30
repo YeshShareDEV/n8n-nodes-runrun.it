@@ -1,9 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-const showOnlyForFilters = {
-  resource: ['projects'],
-};
-
 export const projectsFiltersDescription: INodeProperties[] = [
   {
     displayName: 'List Filters',
