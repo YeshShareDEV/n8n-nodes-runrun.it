@@ -16,6 +16,7 @@ import { documentsDescription } from './resources/documents';
 import { checklistsDescription } from './resources/checklists';
 import { checklistItemsDescription } from './resources/checklistItems';
 import { clientsDescription } from './resources/clients';
+import { projectsDescription } from './resources/projects';
 import { descendantsDescription } from './resources/descendants';
 import { descriptionsDescription } from './resources/descriptions';
 import * as TaskExecute from './resources/executers/TaskExecute';
@@ -30,6 +31,7 @@ import * as ChecklistItemsExecute from './resources/executers/ChecklistItemsExec
 import * as DescendantsExecute from './resources/executers/DescendantsExecute';
 import * as DescriptionsExecute from './resources/executers/DescriptionsExecute';
 import * as TimeWorkedExecute from './resources/executers/TimeWorkedExecute';
+import * as ProjectsExecute from './resources/executers/ProjectsExecute';
 
 export class Runrunit implements INodeType {
 	description: INodeTypeDescription = {
@@ -64,6 +66,7 @@ export class Runrunit implements INodeType {
 					{ name: 'User', value: 'user' },
 					{ name: 'Task', value: 'task' },
 					{ name: 'Team', value: 'team' },
+					{ name: 'Projects', value: 'projects' },
 					{ name: 'Board Stages', value: 'boardStage' },
 					{ name: 'Comments', value: 'comments' },
 					{ name: 'Documents', value: 'documents' },
@@ -97,6 +100,7 @@ export class Runrunit implements INodeType {
 			...checklistItemsDescription,
 			...descendantsDescription,
 			...descriptionsDescription,
+			...projectsDescription,
 			...userDescription,
 			...taskDescription,
 		],
@@ -114,6 +118,7 @@ export class Runrunit implements INodeType {
 			boardStage: BoardStageExecute.execute,
 			comments: CommentsExecute.execute,
 			documents: DocumentsExecute.execute,
+			projects: ProjectsExecute.execute,
 			checklists: ChecklistsExecute.execute,
 			checklistItems: ChecklistItemsExecute.execute,
 			descendants: DescendantsExecute.execute,
