@@ -1,12 +1,10 @@
 import type { INodeProperties } from 'n8n-workflow';
+import { documentsGetAllDescription } from './getAll';
+import { documentsCreateDescription } from './create';
+import { documentsDocumentIdDescription } from './documentId';
 
 const showOnlyForDocuments = {
   resource: ['documents'],
-};
-
-const showOnlyForDocumentWithId = {
-  resource: ['documents'],
-  operation: ['get', 'download', 'thumbnail', 'preview', 'mark_as_uploaded', 'delete'],
 };
 
 export const documentsDescription: INodeProperties[] = [
@@ -122,66 +120,7 @@ export const documentsDescription: INodeProperties[] = [
     ],
     default: 'getAll',
   },
-  {
-    displayName: 'Task ID',
-    name: 'taskId',
-    type: 'string',
-    displayOptions: { show: { resource: ['documents'], operation: ['getAll', 'create'] } },
-    default: '',
-    required: true,
-    description: 'ID of the task',
-  },
-  {
-    displayName: 'Document ID',
-    name: 'documentId',
-    type: 'string',
-    displayOptions: { show: showOnlyForDocumentWithId },
-    default: '',
-    required: true,
-    description: 'ID of the document',
-  },
-  {
-    displayName: 'Binary Property Name',
-    name: 'binaryPropertyName',
-    type: 'string',
-    displayOptions: { show: { resource: ['documents'], operation: ['create'] } },
-    default: 'data',
-    description: 'Name of the binary property that contains the file to upload (for example: data)',
-  },
-  {
-    displayName: 'Document Object (JSON)',
-    name: 'documentObject',
-    type: 'json',
-    displayOptions: { show: { resource: ['documents'], operation: ['create'] } },
-    default: '{}',
-    description: 'Optional metadata to send with upload, e.g. {"document": {"filename":"report.pdf"}}. Metadata will be injected into the multipart request via the create operation preSend.',
-  },
-  {
-    displayName: 'Limit',
-    name: 'limit',
-    type: 'number',
-    displayOptions: { show: { resource: ['documents'], operation: ['getAll'], returnAll: [false] } },
-    typeOptions: { minValue: 1, maxValue: 100 },
-    default: 50,
-    routing: { send: { type: 'query', property: 'limit' }, output: { maxResults: '={{$value}}' } },
-    description: 'Max number of results to return',
-  },
-  {
-    displayName: 'Page',
-    name: 'page',
-    type: 'number',
-    displayOptions: { show: { resource: ['documents'], operation: ['getAll'], returnAll: [false] } },
-    default: 1,
-    description: 'Page number for pagination (1-based)',
-    routing: { send: { type: 'query', property: 'page' } },
-  },
-  {
-    displayName: 'Return All',
-    name: 'returnAll',
-    type: 'boolean',
-    displayOptions: { show: { resource: ['documents'], operation: ['getAll'] } },
-    default: false,
-    description: 'Whether to return all results or only up to a given limit',
-    routing: { send: { paginate: '={{ $value }}' }, operations: { pagination: { type: 'offset', properties: { limitParameter: 'limit', offsetParameter: 'offset', pageSize: 100, type: 'query' } } } },
-  },
+  ...documentsGetAllDescription,
+  ...documentsCreateDescription,
+  ...documentsDocumentIdDescription,
 ];
