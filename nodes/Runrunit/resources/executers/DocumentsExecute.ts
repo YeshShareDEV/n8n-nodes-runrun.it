@@ -47,7 +47,7 @@ async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionDat
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
-  const inputCount = Math.max(1, instance.getInputData().length);
+  const inputCount = 1; // run once to avoid duplicate identical requests when node has multiple input items
   for (let i = 0; i < inputCount; i++) {
     const qs: Record<string, any> = {};
     const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
