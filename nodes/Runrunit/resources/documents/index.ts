@@ -28,63 +28,7 @@ export const documentsDescription: INodeProperties[] = [
         description: 'Return document metadata',
         routing: { request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}' } },
       },
-      {
-        name: 'Download',
-        value: 'download',
-        action: 'Download document',
-        description: 'Download document binary',
-        routing: {
-          request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/download', encoding: 'arraybuffer' },
-          output: {
-            postReceive: [
-              ({
-                type: 'setBinaryData',
-                properties: {
-                  key: 'data',
-                },
-              } as any),
-            ],
-          },
-        },
-      },
-      {
-        name: 'Thumbnail',
-        value: 'thumbnail',
-        action: 'Get document thumbnail',
-        description: 'Get document thumbnail',
-        routing: {
-          request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/thumbnail', encoding: 'arraybuffer' },
-          output: {
-            postReceive: [
-              ({
-                  type: 'setBinaryData',
-                  properties: {
-                    key: 'data',
-                  },
-              } as any),
-            ],
-          },
-        },
-      },
-      {
-        name: 'Preview',
-        value: 'preview',
-        action: 'Get document preview',
-        description: 'Get document preview',
-        routing: {
-          request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}/preview', encoding: 'arraybuffer' },
-          output: {
-            postReceive: [
-              ({
-                  type: 'setBinaryData',
-                  properties: {
-                    key: 'data',
-                  },
-              } as any),
-            ],
-          },
-        },
-      },
+      
       {
         name: 'Mark As Uploaded',
         value: 'mark_as_uploaded',
