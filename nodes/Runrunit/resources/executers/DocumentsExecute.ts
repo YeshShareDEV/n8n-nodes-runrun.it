@@ -11,93 +11,81 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 }
 
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  for (let i = 0; i < inputData.length; i++) {
-    const payload = safeParseJSON(instance, 'documentObject', i) as any;
-    const resp = await makeRequest(instance, 'POST', '/documents', { document: payload });
-    returnData.push({ json: resp });
-  }
-  return [returnData];
+  // 1. Pegamos a configuração da interface (índice 0 é o padrão para parâmetros fixos)
+  const taskId = instance.getNodeParameter('taskId', 0) as string;
+  const payload = safeParseJSON(instance, 'documentObject', 0) as any;
+  // 2. A EXECUÇÃO FICA FORA DE QUALQUER LOOP
+  // Isso garante que, não importa quantos itens entrem, apenas UM documento seja criado.
+  const resp = await makeRequest(instance, 'POST', `/tasks/${taskId}/documents`, { document: payload });
+  // 3. Retornamos o resultado como um item único
+  return [[{ json: resp }]];
 }
 
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  for (let i = 0; i < inputData.length; i++) {
-    const id = instance.getNodeParameter('documentId', i) as string;
-    if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for update');
-    const payload = safeParseJSON(instance, 'documentObject', i) as any;
-    const resp = await makeRequest(instance, 'PUT', `/documents/${id}`, { document: payload });
-    returnData.push({ json: resp });
-  }
-  return [returnData];
+  // 1. Pegamos os parâmetros na interface (índice 0)
+  const id = instance.getNodeParameter('documentId', 0) as string;
+  if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for update');
+  const payload = safeParseJSON(instance, 'documentObject', 0) as any;
+
+  // 2. Executamos UMA única requisição PUT (fora de qualquer loop)
+  const resp = await makeRequest(instance, 'PUT', `/documents/${id}`, { document: payload });
+
+  // 3. Retornamos um único item
+  return [[{ json: resp }]];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  for (let i = 0; i < inputData.length; i++) {
-    const id = instance.getNodeParameter('documentId', i) as string;
-    if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for get');
-    const resp = await makeRequest(instance, 'GET', `/documents/${id}`, {}, {});
-    returnData.push({ json: resp });
+  // 1. Pegamos o ID da interface (índice 0, pois é um parâmetro fixo do nó)
+  const id = instance.getNodeParameter('documentId', 0) as string;
+  if (!id) {
+    throw new NodeOperationError(instance.getNode(), 'Document ID required for get');
   }
-  return [returnData];
+  // 2. A chamada de API acontece FORA de qualquer loop
+  const resp = await makeRequest(instance, 'GET', `/documents/${id}`, {}, {});
+  // 3. Retorna apenas um resultado
+  return [[{ json: resp }]];
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
   const inputData = instance.getInputData();
-
-  // Build list of taskIds (or single empty) to query. Dedupe to avoid identical requests.
-  const taskIdSet = new Set<string>();
-  const requests: { taskId?: string; index: number }[] = [];
-
-  if (inputData.length === 0) {
-    const taskId = instance.getNodeParameter('taskId', 0, '') as string;
-    requests.push({ taskId: taskId || undefined, index: 0 });
+  // 1. EXTRAÇÃO DE PARÂMETROS (Uma única vez, ignorando o loop de entrada)
+  // Usamos o índice 0 porque queremos o que o usuário configurou na interface do nó.
+  const taskId = instance.getNodeParameter('taskId', 0, '') as string;
+  const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
+  const qs: Record<string, any> = {};
+  // MANTENDO OS VALORES ORIGINAIS QUE VOCÊ DEFINIU
+  if (returnAll) {
+    qs.limit = 99000;
   } else {
-    for (let i = 0; i < inputData.length; i++) {
-      const taskId = instance.getNodeParameter('taskId', i, '') as string;
-      const key = taskId || '__noTaskId__';
-      if (!taskIdSet.has(key)) {
-        taskIdSet.add(key);
-        requests.push({ taskId: taskId || undefined, index: i });
-      }
-    }
+    qs.limit = instance.getNodeParameter('limit', 0, 50);
+    qs.page = instance.getNodeParameter('page', 0, 1);
   }
-
-  for (const req of requests) {
-    const qs: Record<string, any> = {};
-    const returnAll = instance.getNodeParameter('returnAll', req.index) as boolean;
-    if (returnAll) qs.limit = 99000;
-    else { qs.limit = instance.getNodeParameter('limit', req.index, 50); qs.page = instance.getNodeParameter('page', req.index, 1); }
-
-    const path = req.taskId ? `/tasks/${req.taskId}/documents` : '/documents';
-    const resp = await makeRequest(instance, 'GET', path, {}, qs);
-    let normalizedArray: any[] = [];
-    if (Array.isArray(resp)) normalizedArray = resp;
-    else if (resp && typeof resp === 'object') normalizedArray = resp.documents || resp.data || resp.items || [resp];
-    const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-    const finalItems = await applyPostFilters(instance, items, req.index);
-    for (const it of finalItems) returnData.push(it);
+  // 2. MONTAGEM DO PATH (Fiel à interface index.ts)
+  const path = taskId ? `/tasks/${taskId}/documents` : '/documents';
+  // 3. A CHAMADA ÚNICA (FORA DO LOOP)
+  const resp = await makeRequest(instance, 'GET', path, {}, qs);
+  // 4. NORMALIZAÇÃO DOS DADOS (Sua lógica de tratamento de array)
+  let normalizedArray: any[] = [];
+  if (Array.isArray(resp)) {
+    normalizedArray = resp;
+  } else if (resp && typeof resp === 'object') {
+    normalizedArray = resp.documents || resp.data || resp.items || [resp];
   }
-
-  return [returnData];
+  const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
+  // 5. FILTROS POST-EXECUÇÃO
+  const finalItems = await applyPostFilters(instance, items, 0);
+  return [finalItems];
 }
 
 async function handleDelete(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  for (let i = 0; i < inputData.length; i++) {
-    const id = instance.getNodeParameter('documentId', i) as string;
-    if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for delete');
-    // API expects DELETE /documents/:id with optional empty body
-    const resp = await makeRequest(instance, 'DELETE', `/documents/${id}`, {}, {});
-    // API may return 204 No Content; normalize to an object indicating success
-    if (resp === undefined || resp === null) returnData.push({ json: { success: true, documentId: id } });
-    else returnData.push({ json: resp });
-  }
+    // single documentId expected (either from incoming item 0 or node parameter)
+  const idx = 0;
+  const id = instance.getNodeParameter('documentId', idx) as string;
+  if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for delete');
+  // single request
+  const resp = await makeRequest(instance, 'DELETE', `/documents/${id}`, {}, {});
+  if (resp === undefined || resp === null) returnData.push({ json: { success: true, documentId: id } });
+  else returnData.push({ json: resp });
   return [returnData];
 }

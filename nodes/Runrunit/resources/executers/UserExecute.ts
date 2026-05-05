@@ -13,47 +13,38 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
   const inputData = instance.getInputData();
-
-  for (let i = 0; i < inputData.length; i++) {
-    const path = '/users';
-    const userPayload = safeParseJSON(instance, 'userObject', i) as any;
-    const body = { user: userPayload, make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', i) };
-    const resp = await makeRequest(instance, 'POST', path, body);
-    returnData.push({ json: resp });
-  }
-
+  if (inputData.length === 0) return [returnData];
+  const path = '/users';
+  const userPayload = safeParseJSON(instance, 'userObject', 0) as any;
+  const body = { user: userPayload, make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', 0) };
+  const resp = await makeRequest(instance, 'POST', path, body);
+  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
   return [returnData];
 }
 
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
   const inputData = instance.getInputData();
-
-  for (let i = 0; i < inputData.length; i++) {
-    const userId = instance.getNodeParameter('userId', i) as string;
-    if (!userId) throw new NodeOperationError(instance.getNode(), 'User ID is required for update');
-    const path = `/users/${userId}`;
-    const userPayload = safeParseJSON(instance, 'userObject', i) as any;
-    const body = { user: userPayload, make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', i) };
-    const resp = await makeRequest(instance, 'PUT', path, body);
-    returnData.push({ json: resp });
-  }
-
+  if (inputData.length === 0) return [returnData];
+  const userId = instance.getNodeParameter('userId', 0) as string;
+  if (!userId) throw new NodeOperationError(instance.getNode(), 'User ID is required for update');
+  const path = `/users/${userId}`;
+  const userPayload = safeParseJSON(instance, 'userObject', 0) as any;
+  const body = { user: userPayload, make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', 0) };
+  const resp = await makeRequest(instance, 'PUT', path, body);
+  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
   return [returnData];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
   const inputData = instance.getInputData();
-
-  for (let i = 0; i < inputData.length; i++) {
-    const userId = instance.getNodeParameter('userId', i) as string;
-    if (!userId) throw new NodeOperationError(instance.getNode(), 'User ID is required for get');
-    const path = `/users/${userId}`;
-    const resp = await makeRequest(instance, 'GET', path, {}, {});
-    returnData.push({ json: resp });
-  }
-
+  if (inputData.length === 0) return [returnData];
+  const userId = instance.getNodeParameter('userId', 0) as string;
+  if (!userId) throw new NodeOperationError(instance.getNode(), 'User ID is required for get');
+  const path = `/users/${userId}`;
+  const resp = await makeRequest(instance, 'GET', path, {}, {});
+  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
   return [returnData];
 }
 
@@ -61,25 +52,21 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   const returnData: INodeExecutionData[] = [];
   const inputCount = Math.max(1, instance.getInputData().length);
 
+  const qs: Record<string, any> = {};
+  const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
+  if (returnAll) qs.limit = 99000;
+  else {
+    qs.limit = instance.getNodeParameter('limit', 0, 50);
+    qs.page = instance.getNodeParameter('page', 0, 1);
+  }
+  const resp = await makeRequest(instance, 'GET', '/users', {}, qs);
+  let normalizedArray: any[] = [];
+  if (Array.isArray(resp)) normalizedArray = resp;
+  else if (resp && typeof resp === 'object') normalizedArray = resp.users || resp.data || resp.items || [resp];
+  const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
   for (let i = 0; i < inputCount; i++) {
-    const qs: Record<string, any> = {};
-    const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
-    if (returnAll) qs.limit = 99000;
-    else {
-      qs.limit = instance.getNodeParameter('limit', i, 50);
-      qs.page = instance.getNodeParameter('page', i, 1);
-    }
-
-    const resp = await makeRequest(instance, 'GET', '/users', {}, qs);
-
-    let normalizedArray: any[] = [];
-    if (Array.isArray(resp)) normalizedArray = resp;
-    else if (resp && typeof resp === 'object') normalizedArray = resp.users || resp.data || resp.items || [resp];
-
-    const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
     const finalItems = await applyPostFilters(instance, items, i);
     for (const it of finalItems) returnData.push(it);
   }
-
   return [returnData];
 }

@@ -12,52 +12,49 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
   const inputData = instance.getInputData();
-  for (let i = 0; i < inputData.length; i++) {
-    const payload = safeParseJSON(instance, 'boardStageObject', i) as any;
-    const resp = await makeRequest(instance, 'POST', '/board_stages', { board_stage: payload });
-    returnData.push({ json: resp });
-  }
+  if (inputData.length === 0) return [returnData];
+  const payload = safeParseJSON(instance, 'boardStageObject', 0) as any;
+  const resp = await makeRequest(instance, 'POST', '/board_stages', { board_stage: payload });
+  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
   return [returnData];
 }
 
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
   const inputData = instance.getInputData();
-  for (let i = 0; i < inputData.length; i++) {
-    const id = instance.getNodeParameter('boardStageId', i) as string;
-    if (!id) throw new NodeOperationError(instance.getNode(), 'BoardStage ID required for update');
-    const payload = safeParseJSON(instance, 'boardStageObject', i) as any;
-    const resp = await makeRequest(instance, 'PUT', `/board_stages/${id}`, { board_stage: payload });
-    returnData.push({ json: resp });
-  }
+  if (inputData.length === 0) return [returnData];
+  const id = instance.getNodeParameter('boardStageId', 0) as string;
+  if (!id) throw new NodeOperationError(instance.getNode(), 'BoardStage ID required for update');
+  const payload = safeParseJSON(instance, 'boardStageObject', 0) as any;
+  const resp = await makeRequest(instance, 'PUT', `/board_stages/${id}`, { board_stage: payload });
+  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
   return [returnData];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
   const inputData = instance.getInputData();
-  for (let i = 0; i < inputData.length; i++) {
-    const id = instance.getNodeParameter('boardStageId', i) as string;
-    if (!id) throw new NodeOperationError(instance.getNode(), 'BoardStage ID required for get');
-    const resp = await makeRequest(instance, 'GET', `/board_stages/${id}`, {}, {});
-    returnData.push({ json: resp });
-  }
+  if (inputData.length === 0) return [returnData];
+  const id = instance.getNodeParameter('boardStageId', 0) as string;
+  if (!id) throw new NodeOperationError(instance.getNode(), 'BoardStage ID required for get');
+  const resp = await makeRequest(instance, 'GET', `/board_stages/${id}`, {}, {});
+  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
   return [returnData];
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
   const inputCount = Math.max(1, instance.getInputData().length);
+  const qs: Record<string, any> = {};
+  const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
+  if (returnAll) qs.limit = 99000;
+  else { qs.limit = instance.getNodeParameter('limit', 0, 50); qs.page = instance.getNodeParameter('page', 0, 1); }
+  const resp = await makeRequest(instance, 'GET', '/board_stages', {}, qs);
+  let normalizedArray: any[] = [];
+  if (Array.isArray(resp)) normalizedArray = resp;
+  else if (resp && typeof resp === 'object') normalizedArray = resp.board_stages || resp.data || resp.items || [resp];
+  const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
   for (let i = 0; i < inputCount; i++) {
-    const qs: Record<string, any> = {};
-    const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
-    if (returnAll) qs.limit = 99000;
-    else { qs.limit = instance.getNodeParameter('limit', i, 50); qs.page = instance.getNodeParameter('page', i, 1); }
-    const resp = await makeRequest(instance, 'GET', '/board_stages', {}, qs);
-    let normalizedArray: any[] = [];
-    if (Array.isArray(resp)) normalizedArray = resp;
-    else if (resp && typeof resp === 'object') normalizedArray = resp.board_stages || resp.data || resp.items || [resp];
-    const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
     const finalItems = await applyPostFilters(instance, items, i);
     for (const it of finalItems) returnData.push(it);
   }
