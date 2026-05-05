@@ -18,7 +18,6 @@ import { checklistItemsDescription } from './resources/checklistItems';
 import { clientsDescription } from './resources/clients';
 import { projectsDescription } from './resources/projects';
 import { descendantsDescription } from './resources/descendants';
-import { descriptionsDescription } from './resources/descriptions';
 import * as TaskExecute from './resources/executers/TaskExecute';
 import * as UserExecute from './resources/executers/UserExecute';
 import * as ClientsExecute from './resources/executers/ClientsExecute';
@@ -99,7 +98,6 @@ export class Runrunit implements INodeType {
 			...checklistsDescription,
 			...checklistItemsDescription,
 			...descendantsDescription,
-			...descriptionsDescription,
 			...projectsDescription,
 			...userDescription,
 			...taskDescription,
