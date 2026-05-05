@@ -114,6 +114,7 @@ export const taskGetManyDescription: INodeProperties[] = [
                             { name: 'Client Name', value: 'client_name' },
                             { name: 'Priority', value: 'priority' },
                             { name: 'Created At', value: 'created_at' },
+                            { name: 'Last Activity At', value: 'last_activity_at' },
                             { name: 'Is Working On', value: 'is_working_on' },
                             { name: 'Time Worked (Sec)', value: 'time_worked' },
                         ],

@@ -47,7 +47,7 @@ async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionDat
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const inputData = instance.getInputData();
+  //const inputData = instance.getInputData();
   // 1. EXTRAÇÃO DE PARÂMETROS (Uma única vez, ignorando o loop de entrada)
   // Usamos o índice 0 porque queremos o que o usuário configurou na interface do nó.
   const taskId = instance.getNodeParameter('taskId', 0, '') as string;
