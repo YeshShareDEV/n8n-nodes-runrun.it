@@ -1,37 +1,11 @@
 import { NodeOperationError, type IExecuteFunctions, type INodeExecutionData } from 'n8n-workflow';
-import { makeRequest, applyPostFilters, safeParseJSON } from '../../GenericFunctions';
+import { makeRequest, applyPostFilters } from '../../GenericFunctions';
 
 export async function execute(instance: IExecuteFunctions, operation: string): Promise<INodeExecutionData[][]> {
-  if (operation === 'create') return await handleCreate(instance);
-  if (operation === 'update') return await handleUpdate(instance);
   if (operation === 'get') return await handleGet(instance);
   if (operation === 'getAll') return await handleGetAll(instance);
   if (operation === 'delete') return await handleDelete(instance);
   throw new NodeOperationError(instance.getNode(), 'Operation not supported for Documents');
-}
-
-async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  // 1. Pegamos a configuração da interface (índice 0 é o padrão para parâmetros fixos)
-  const taskId = instance.getNodeParameter('taskId', 0) as string;
-  const payload = safeParseJSON(instance, 'documentObject', 0) as any;
-  // 2. A EXECUÇÃO FICA FORA DE QUALQUER LOOP
-  // Isso garante que, não importa quantos itens entrem, apenas UM documento seja criado.
-  const resp = await makeRequest(instance, 'POST', `/tasks/${taskId}/documents`, { document: payload });
-  // 3. Retornamos o resultado como um item único
-  return [[{ json: resp }]];
-}
-
-async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  // 1. Pegamos os parâmetros na interface (índice 0)
-  const id = instance.getNodeParameter('documentId', 0) as string;
-  if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for update');
-  const payload = safeParseJSON(instance, 'documentObject', 0) as any;
-
-  // 2. Executamos UMA única requisição PUT (fora de qualquer loop)
-  const resp = await makeRequest(instance, 'PUT', `/documents/${id}`, { document: payload });
-
-  // 3. Retornamos um único item
-  return [[{ json: resp }]];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {

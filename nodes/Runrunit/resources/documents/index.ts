@@ -1,6 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { documentsGetAllDescription } from './getAll';
-import { documentsCreateDescription } from './create';
 import { documentsDocumentIdDescription } from './documentId';
 
 const showOnlyForDocuments = {
@@ -87,23 +86,6 @@ export const documentsDescription: INodeProperties[] = [
         },
       },
       {
-        name: 'Create',
-        value: 'create',
-        action: 'Upload document',
-        description: 'Upload a document to a task (multipart/form-data)',
-        routing: {
-          request: {
-            method: 'POST',
-            url: '=/tasks/{{$parameter.taskId}}/documents',
-            headers: { 'Content-Type': 'multipart/form-data' },
-          },
-          send: {
-            type: 'body',
-            property: 'document',
-          },
-        },
-      },
-      {
         name: 'Mark As Uploaded',
         value: 'mark_as_uploaded',
         action: 'Mark document as uploaded',
@@ -121,6 +103,5 @@ export const documentsDescription: INodeProperties[] = [
     default: 'getAll',
   },
   ...documentsGetAllDescription,
-  ...documentsCreateDescription,
   ...documentsDocumentIdDescription,
 ];
