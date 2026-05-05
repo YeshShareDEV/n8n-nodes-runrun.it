@@ -6,6 +6,7 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
   if (operation === 'update') return await handleUpdate(instance);
   if (operation === 'get') return await handleGet(instance);
   if (operation === 'getAll') return await handleGetAll(instance);
+  if (operation === 'delete') return await handleDelete(instance);
   throw new NodeOperationError(instance.getNode(), 'Operation not supported for Documents');
 }
 
@@ -83,5 +84,20 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
     for (const it of finalItems) returnData.push(it);
   }
 
+  return [returnData];
+}
+
+async function handleDelete(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+  const returnData: INodeExecutionData[] = [];
+  const inputData = instance.getInputData();
+  for (let i = 0; i < inputData.length; i++) {
+    const id = instance.getNodeParameter('documentId', i) as string;
+    if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for delete');
+    // API expects DELETE /documents/:id with optional empty body
+    const resp = await makeRequest(instance, 'DELETE', `/documents/${id}`, {}, {});
+    // API may return 204 No Content; normalize to an object indicating success
+    if (resp === undefined || resp === null) returnData.push({ json: { success: true, documentId: id } });
+    else returnData.push({ json: resp });
+  }
   return [returnData];
 }
