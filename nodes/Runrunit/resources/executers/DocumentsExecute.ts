@@ -47,19 +47,41 @@ async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionDat
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const returnData: INodeExecutionData[] = [];
-  const inputCount = 1; // run once to avoid duplicate identical requests when node has multiple input items
-  for (let i = 0; i < inputCount; i++) {
+  const inputData = instance.getInputData();
+
+  // Build list of taskIds (or single empty) to query. Dedupe to avoid identical requests.
+  const taskIdSet = new Set<string>();
+  const requests: { taskId?: string; index: number }[] = [];
+
+  if (inputData.length === 0) {
+    const taskId = instance.getNodeParameter('taskId', 0, '') as string;
+    requests.push({ taskId: taskId || undefined, index: 0 });
+  } else {
+    for (let i = 0; i < inputData.length; i++) {
+      const taskId = instance.getNodeParameter('taskId', i, '') as string;
+      const key = taskId || '__noTaskId__';
+      if (!taskIdSet.has(key)) {
+        taskIdSet.add(key);
+        requests.push({ taskId: taskId || undefined, index: i });
+      }
+    }
+  }
+
+  for (const req of requests) {
     const qs: Record<string, any> = {};
-    const returnAll = instance.getNodeParameter('returnAll', i) as boolean;
+    const returnAll = instance.getNodeParameter('returnAll', req.index) as boolean;
     if (returnAll) qs.limit = 99000;
-    else { qs.limit = instance.getNodeParameter('limit', i, 50); qs.page = instance.getNodeParameter('page', i, 1); }
-    const resp = await makeRequest(instance, 'GET', '/documents', {}, qs);
+    else { qs.limit = instance.getNodeParameter('limit', req.index, 50); qs.page = instance.getNodeParameter('page', req.index, 1); }
+
+    const path = req.taskId ? `/tasks/${req.taskId}/documents` : '/documents';
+    const resp = await makeRequest(instance, 'GET', path, {}, qs);
     let normalizedArray: any[] = [];
     if (Array.isArray(resp)) normalizedArray = resp;
     else if (resp && typeof resp === 'object') normalizedArray = resp.documents || resp.data || resp.items || [resp];
     const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-    const finalItems = await applyPostFilters(instance, items, i);
+    const finalItems = await applyPostFilters(instance, items, req.index);
     for (const it of finalItems) returnData.push(it);
   }
+
   return [returnData];
 }

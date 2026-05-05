@@ -7,6 +7,14 @@ const showOnlyForDocumentsGetAll = {
 
 export const documentsGetAllDescription: INodeProperties[] = [
   {
+    displayName: 'Task ID',
+    name: 'taskId',
+    type: 'string',
+    displayOptions: { show: showOnlyForDocumentsGetAll },
+    default: '',
+    description: 'ID of the task to list documents for',
+  },
+  {
     displayName: 'Return All',
     name: 'returnAll',
     type: 'boolean',
