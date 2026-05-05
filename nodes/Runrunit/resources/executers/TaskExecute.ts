@@ -65,7 +65,7 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   if (isClosed !== 'all') {
     qs.is_closed = isClosed;
   } else {
-    qs.bypass_status_default = false;
+    qs.bypass_status_default = true;
   }
   const resp = await makeRequest(instance, 'GET', '/tasks', {}, qs);
   let normalizedArray: any[] = [];
