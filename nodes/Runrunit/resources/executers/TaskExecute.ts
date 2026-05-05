@@ -62,7 +62,11 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   const clientId = instance.getNodeParameter('client_id', 0, 0) as number;
   if (clientId !== 0) qs.client_id = clientId;
   const isClosed = instance.getNodeParameter('is_closed', 0, 'all') as string;
-  if (isClosed !== 'all') qs.is_closed = isClosed;
+  if (isClosed !== 'all') {
+    qs.is_closed = isClosed;
+  } else {
+    qs.bypass_status_default = false;
+  }
   const resp = await makeRequest(instance, 'GET', '/tasks', {}, qs);
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) normalizedArray = resp;
