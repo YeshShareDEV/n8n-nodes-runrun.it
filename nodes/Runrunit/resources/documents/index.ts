@@ -28,14 +28,6 @@ export const documentsDescription: INodeProperties[] = [
         description: 'Return document metadata',
         routing: { request: { method: 'GET', url: '=/documents/{{$parameter.documentId}}' } },
       },
-      
-      {
-        name: 'Mark As Uploaded',
-        value: 'mark_as_uploaded',
-        action: 'Mark document as uploaded',
-        description: 'Mark a previously uploaded document as uploaded',
-        routing: { request: { method: 'POST', url: '=/documents/{{$parameter.documentId}}/mark_as_uploaded' } },
-      },
       {
         name: 'Delete',
         value: 'delete',
