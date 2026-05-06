@@ -19,8 +19,6 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputCount = Math.max(1, instance.getInputData().length);
   const qs: Record<string, any> = {};
   const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
   if (returnAll) qs.limit = 99000;
@@ -30,16 +28,18 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   if (Array.isArray(resp)) normalizedArray = resp;
   else if (resp && typeof resp === 'object') normalizedArray = resp.filters || resp.items || resp.data || [resp];
   const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-  for (let i = 0; i < inputCount; i++) {
-    const finalItems = await applyPostFilters(instance, items, i);
-    for (const it of finalItems) returnData.push(it);
+  const filters = instance.getNodeParameter('filters', 0, {}) as any;
+  const hasFilters = !!(filters?.filter?.length > 0);
+  const hasData = items && items.length > 0;
+
+  if (hasFilters && hasData) {
+    const finalItems = await applyPostFilters(instance, items, 0);
+    return [finalItems];
   }
-  return [returnData];
+  return [items];
 }
 
 async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputCount = Math.max(1, instance.getInputData().length);
   const qs: Record<string, any> = {};
   const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
   if (returnAll) qs.limit = 99000;
@@ -65,11 +65,15 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
     }
   }
   const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-  for (let i = 0; i < inputCount; i++) {
-    const finalItems = await applyPostFilters(instance, items, i);
-    for (const it of finalItems) returnData.push(it);
+  const filters = instance.getNodeParameter('filters', 0, {}) as any;
+  const hasFilters = !!(filters?.filter?.length > 0);
+  const hasData = items && items.length > 0;
+
+  if (hasFilters && hasData) {
+    const finalItems = await applyPostFilters(instance, items, 0);
+    return [finalItems];
   }
-  return [returnData];
+  return [items];
 }
 
 async function handleGetProject(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {

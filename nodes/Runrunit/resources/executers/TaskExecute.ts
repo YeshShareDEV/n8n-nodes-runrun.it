@@ -43,8 +43,6 @@ async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionDat
   return [returnData];
 }
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputCount = Math.max(1, instance.getInputData().length);
   // Build qs from first input and make a single request
   const qs: Record<string, any> = {};
   const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
@@ -72,10 +70,13 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   if (Array.isArray(resp)) normalizedArray = resp;
   else if (resp && typeof resp === 'object') normalizedArray = resp.tasks || resp.data || resp.items || [resp];
   const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-  // For each original input, apply post-filters using its index (filters/options remain per-item)
-  for (let i = 0; i < inputCount; i++) {
-    const finalItems = await applyPostFilters(instance, items, i);
-    for (const it of finalItems) returnData.push(it);
+  const filters = instance.getNodeParameter('filters', 0, {}) as any;
+  const hasFilters = !!(filters?.filter?.length > 0);
+  const hasData = items && items.length > 0;
+
+  if (hasFilters && hasData) {
+    const finalItems = await applyPostFilters(instance, items, 0);
+    return [finalItems];
   }
-  return [returnData];
+  return [items];
 }
