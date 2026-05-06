@@ -58,6 +58,12 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) normalizedArray = resp;
   else if (resp && typeof resp === 'object') normalizedArray = resp.projects || resp.items || resp.data || [resp];
+  // Map project `name` to `project_name` so post-filters that expect `project_name` work
+  for (const obj of normalizedArray) {
+    if (obj && typeof obj === 'object') {
+      if (obj.name && typeof obj.project_name === 'undefined') obj.project_name = obj.name;
+    }
+  }
   const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
   for (let i = 0; i < inputCount; i++) {
     const finalItems = await applyPostFilters(instance, items, i);
