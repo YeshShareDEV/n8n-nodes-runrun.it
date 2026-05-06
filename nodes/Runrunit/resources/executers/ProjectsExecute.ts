@@ -48,6 +48,12 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
   if (clientId !== 0) qs.client_id = clientId;
   const projectGroupId = instance.getNodeParameter('project_group_id', 0, 0) as number;
   if (projectGroupId !== 0) qs.project_group_id = projectGroupId;
+  const isClosed = instance.getNodeParameter('is_closed', 0, 'all') as string;
+  if (isClosed !== 'all') {
+    qs.is_closed = isClosed;
+  } else {
+    qs.bypass_status_default = true;
+  }
   const resp = await makeRequest(instance, 'GET', '/projects', {}, qs);
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) normalizedArray = resp;
