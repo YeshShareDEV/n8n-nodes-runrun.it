@@ -44,10 +44,10 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
   const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
   if (returnAll) qs.limit = 99000;
   else { qs.limit = instance.getNodeParameter('limit', 0, 50); qs.page = instance.getNodeParameter('page', 0, 1); }
-  const clientId = instance.getNodeParameter('client_id', 0, 0) as number;
-  if (clientId !== 0) qs.client_id = clientId;
-  const projectGroupId = instance.getNodeParameter('project_group_id', 0, 0) as number;
-  if (projectGroupId !== 0) qs.project_group_id = projectGroupId;
+  const clientId = instance.getNodeParameter('client_id', 0, 0) as number | null | undefined;
+  if (clientId !== null && typeof clientId !== 'undefined' && clientId !== 0) qs.client_id = clientId;
+  const projectGroupId = instance.getNodeParameter('project_group_id', 0, 0) as number | null | undefined;
+  if (projectGroupId !== null && typeof projectGroupId !== 'undefined' && projectGroupId !== 0) qs.project_group_id = projectGroupId;
   const isClosed = instance.getNodeParameter('is_closed', 0, 'all') as string;
   if (isClosed !== 'all') {
     qs.is_closed = isClosed;
