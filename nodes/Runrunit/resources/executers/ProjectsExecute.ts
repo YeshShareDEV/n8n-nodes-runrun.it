@@ -77,107 +77,71 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
 }
 
 async function handleGetProject(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for get');
   const resp = await makeRequest(instance, 'GET', `/projects/${id}`, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleCreateProject(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const payload = safeParseJSON(instance, 'projectObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', '/projects', { project: payload });
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleUpdateProject(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for update');
   const payload = safeParseJSON(instance, 'projectObject', 0) as any;
   const resp = await makeRequest(instance, 'PUT', `/projects/${id}`, payload, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleRelatedUsers(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for related_users');
   const resp = await makeRequest(instance, 'GET', `/projects/${id}/related_users`, {}, {});
   const items: INodeExecutionData[] = Array.isArray(resp) ? resp.map((r: any) => ({ json: r })) : [{ json: resp }];
-  for (const it of items) returnData.push(it);
-  return [returnData];
+  return [items];
 }
 
 async function handleMove(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for move');
   const payload = safeParseJSON(instance, 'moveObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', `/projects/${id}/move`, payload, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleShare(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for share');
   const payload = safeParseJSON(instance, 'shareObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', `/projects/${id}/share`, payload, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleUnshare(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for unshare');
   const resp = await makeRequest(instance, 'POST', `/projects/${id}/unshare`, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleClone(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for clone');
   const payload = safeParseJSON(instance, 'cloneObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', `/projects/${id}/clone`, payload, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleChangeBoardStage(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('projectId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Project ID required for change_board_stage');
   const payload = safeParseJSON(instance, 'changeBoardStageObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', `/projects/${id}/change_board_stage`, payload, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGetAllFilters(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -193,23 +157,15 @@ async function handleDeleteFilter(instance: IExecuteFunctions): Promise<INodeExe
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('filterId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Filter ID required for get');
   const resp = await makeRequest(instance, 'GET', `/projects/filters/${id}`, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleDelete(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('filterId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Filter ID required for delete');
   await makeRequest(instance, 'DELETE', `/projects/filters/${id}`, {}, {});
-  returnData.push({ json: { success: true, id } });
-  return [returnData];
+  return [[{ json: { success: true, id } }]];
 }

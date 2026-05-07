@@ -11,41 +11,29 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 }
 
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const path = '/users';
   const userPayload = safeParseJSON(instance, 'userObject', 0) as any;
   const body = { user: userPayload, make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', 0) };
   const resp = await makeRequest(instance, 'POST', path, body);
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const userId = instance.getNodeParameter('userId', 0) as string;
   if (!userId) throw new NodeOperationError(instance.getNode(), 'User ID is required for update');
   const path = `/users/${userId}`;
   const userPayload = safeParseJSON(instance, 'userObject', 0) as any;
   const body = { user: userPayload, make_everybody_mutual_partners: instance.getNodeParameter('makeEverybodyMutualPartners', 0) };
   const resp = await makeRequest(instance, 'PUT', path, body);
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const userId = instance.getNodeParameter('userId', 0) as string;
   if (!userId) throw new NodeOperationError(instance.getNode(), 'User ID is required for get');
   const path = `/users/${userId}`;
   const resp = await makeRequest(instance, 'GET', path, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {

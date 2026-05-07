@@ -10,36 +10,24 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 }
 
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const payload = safeParseJSON(instance, 'checklistItemObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', '/checklist_items', { checklist_item: payload });
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('checklistItemId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Checklist Item ID required for update');
   const payload = safeParseJSON(instance, 'checklistItemObject', 0) as any;
   const resp = await makeRequest(instance, 'PUT', `/checklist_items/${id}`, { checklist_item: payload });
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('checklistItemId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Checklist Item ID required for get');
   const resp = await makeRequest(instance, 'GET', `/checklist_items/${id}`, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -55,7 +43,6 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   const filters = instance.getNodeParameter('filters', 0, {}) as any;
   const hasFilters = !!(filters?.filter?.length > 0);
   const hasData = items && items.length > 0;
-
   if (hasFilters && hasData) {
     const finalItems = await applyPostFilters(instance, items, 0);
     return [finalItems];

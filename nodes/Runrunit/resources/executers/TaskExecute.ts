@@ -8,39 +8,27 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
   throw new NodeOperationError(instance.getNode(), 'Operation not supported for Task');
 }
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const path = '/tasks';
   const taskPayload = safeParseJSON(instance, 'taskObject', 0) as any;
   const body = { task: taskPayload };
   const resp = await makeRequest(instance, 'POST', path, body);
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const taskId = instance.getNodeParameter('taskId', 0) as string;
   if (!taskId) throw new NodeOperationError(instance.getNode(), 'Task ID is required for update');
   const path = `/tasks/${taskId}`;
   const taskPayload = safeParseJSON(instance, 'taskObject', 0) as any;
   const body = { task: taskPayload };
   const resp = await makeRequest(instance, 'PUT', path, body);
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const taskId = instance.getNodeParameter('taskId', 0) as string;
   if (!taskId) throw new NodeOperationError(instance.getNode(), 'Task ID is required for get');
   const path = `/tasks/${taskId}`;
   const resp = await makeRequest(instance, 'GET', path, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   // Build qs from first input and make a single request

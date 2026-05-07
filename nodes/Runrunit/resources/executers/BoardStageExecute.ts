@@ -10,36 +10,24 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 }
 
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const payload = safeParseJSON(instance, 'boardStageObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', '/board_stages', { board_stage: payload });
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('boardStageId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'BoardStage ID required for update');
   const payload = safeParseJSON(instance, 'boardStageObject', 0) as any;
   const resp = await makeRequest(instance, 'PUT', `/board_stages/${id}`, { board_stage: payload });
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('boardStageId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'BoardStage ID required for get');
   const resp = await makeRequest(instance, 'GET', `/board_stages/${id}`, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {

@@ -52,14 +52,9 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
 }
 
 async function handleDelete(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-    // single documentId expected (either from incoming item 0 or node parameter)
-  const idx = 0;
-  const id = instance.getNodeParameter('documentId', idx) as string;
+  const id = instance.getNodeParameter('documentId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Document ID required for delete');
-  // single request
   const resp = await makeRequest(instance, 'DELETE', `/documents/${id}`, {}, {});
-  if (resp === undefined || resp === null) returnData.push({ json: { success: true, documentId: id } });
-  else returnData.push({ json: resp });
-  return [returnData];
+  const json = (resp === undefined || resp === null) ? { success: true, documentId: id } : resp;
+  return [[{ json }]];
 }

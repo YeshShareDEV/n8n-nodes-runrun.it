@@ -10,36 +10,24 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 }
 
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const payload = safeParseJSON(instance, 'descriptionObject', 0) as any;
   const resp = await makeRequest(instance, 'POST', '/descriptions', { description: payload });
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('descriptionId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Description ID required for update');
   const payload = safeParseJSON(instance, 'descriptionObject', 0) as any;
   const resp = await makeRequest(instance, 'PUT', `/descriptions/${id}`, { description: payload });
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const returnData: INodeExecutionData[] = [];
-  const inputData = instance.getInputData();
-  if (inputData.length === 0) return [returnData];
   const id = instance.getNodeParameter('descriptionId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Description ID required for get');
   const resp = await makeRequest(instance, 'GET', `/descriptions/${id}`, {}, {});
-  for (let i = 0; i < inputData.length; i++) returnData.push({ json: resp });
-  return [returnData];
+  return [[{ json: resp }]];
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
