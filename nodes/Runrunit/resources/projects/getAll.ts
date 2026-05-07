@@ -15,15 +15,6 @@ export const projectsGetManyDescription: INodeProperties[] = [
     description: 'Whether to return all results or only up to a given limit',
   },
   {
-    displayName: 'Limit',
-    name: 'limit',
-    type: 'number',
-    displayOptions: { show: { ...showOnlyForProjects, returnAll: [false] } },
-    typeOptions: { minValue: 1, maxValue: 100 },
-    default: 50,
-    description: 'Max number of results to return',
-  },
-  {
     displayName: 'Page',
     name: 'page',
     type: 'number',
@@ -46,6 +37,15 @@ export const projectsGetManyDescription: INodeProperties[] = [
     displayOptions: { show: showOnlyForProjects },
     default: 0,
     description: 'Filter by project group id (optional — include only if provided)',
+  },
+  {
+    displayName: 'Search Term',
+    name: 'search_term',
+    type: 'string',
+    displayOptions: { show: showOnlyForProjects },
+    default: '',
+    description: 'Search term to filter projects by name',
+    routing: { send: { type: 'query', property: 'search_term' } },
   },
   {
     displayName: 'Is Closed',

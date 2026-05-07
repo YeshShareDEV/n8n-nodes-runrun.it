@@ -1,17 +1,34 @@
 import { NodeOperationError, type IExecuteFunctions, type INodeExecutionData } from 'n8n-workflow';
-import { makeRequest, applyPostFilters, safeParseJSON } from '../../GenericFunctions';
+import { makeRequest, applyPostFilters } from '../../GenericFunctions';
 
 export async function execute(instance: IExecuteFunctions, operation: string): Promise<INodeExecutionData[][]> {
   if (operation === 'create') return await handleCreate(instance);
   if (operation === 'update') return await handleUpdate(instance);
   if (operation === 'get') return await handleGet(instance);
   if (operation === 'getAll') return await handleGetAll(instance);
+  if (operation === 'monthly_budgets') return await handleMonthlyBudgets(instance);
+  if (operation === 'update_monthly_budget') return await handleUpdateMonthlyBudget(instance);
 
   throw new NodeOperationError(instance.getNode(), 'Operation not supported for Clients');
 }
 
+function buildClientPayload(instance: IExecuteFunctions): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+  const name = instance.getNodeParameter('clientName', 0, '') as string;
+  const isVisible = instance.getNodeParameter('clientIsVisible', 0, true) as boolean;
+  const budgetedHours = instance.getNodeParameter('clientBudgetedHoursMonth', 0, 0) as number;
+  const budgetedCost = instance.getNodeParameter('clientBudgetedCostMonth', 0, 0) as number;
+  const customField = instance.getNodeParameter('clientCustomField', 0, '') as string;
+  if (name) payload.name = name;
+  payload.is_visible = isVisible;
+  if (budgetedHours) payload.budgeted_hours_month = budgetedHours;
+  if (budgetedCost) payload.budgeted_cost_month = budgetedCost;
+  if (customField) payload.custom_field = customField;
+  return payload;
+}
+
 async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  const payload = safeParseJSON(instance, 'clientObject', 0) as any;
+  const payload = buildClientPayload(instance);
   const resp = await makeRequest(instance, 'POST', '/clients', { client: payload });
   return [[{ json: resp }]];
 }
@@ -19,8 +36,31 @@ async function handleCreate(instance: IExecuteFunctions): Promise<INodeExecution
 async function handleUpdate(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const id = instance.getNodeParameter('clientId', 0) as string;
   if (!id) throw new NodeOperationError(instance.getNode(), 'Client ID required for update');
-  const payload = safeParseJSON(instance, 'clientObject', 0) as any;
+  const payload = buildClientPayload(instance);
   const resp = await makeRequest(instance, 'PUT', `/clients/${id}`, { client: payload });
+  return [[{ json: resp }]];
+}
+
+async function handleMonthlyBudgets(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+  const id = instance.getNodeParameter('clientId', 0) as string;
+  if (!id) throw new NodeOperationError(instance.getNode(), 'Client ID required for monthly_budgets');
+  const qs: Record<string, unknown> = {};
+  const month = instance.getNodeParameter('month', 0, '') as string;
+  const time = instance.getNodeParameter('time', 0, 0) as number;
+  const cost = instance.getNodeParameter('cost', 0, '') as string;
+  if (month) qs.month = month;
+  if (time) qs.time = time;
+  if (cost) qs.cost = cost;
+  const resp = await makeRequest(instance, 'GET', `/clients/${id}/monthly_budgets`, {}, qs);
+  return [[{ json: resp }]];
+}
+
+async function handleUpdateMonthlyBudget(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+  const id = instance.getNodeParameter('clientId', 0) as string;
+  if (!id) throw new NodeOperationError(instance.getNode(), 'Client ID required for update_monthly_budget');
+  const budgetObject = instance.getNodeParameter('budgetObject', 0, '{}') as string;
+  const payload = typeof budgetObject === 'string' ? JSON.parse(budgetObject) : budgetObject;
+  const resp = await makeRequest(instance, 'POST', `/clients/${id}/update_monthly_budget`, { monthly_budget: payload });
   return [[{ json: resp }]];
 }
 
