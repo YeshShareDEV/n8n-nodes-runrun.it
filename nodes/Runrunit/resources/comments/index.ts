@@ -1,13 +1,10 @@
 import type { INodeProperties } from 'n8n-workflow';
-
-const showOnlyForComments = {
-  resource: ['comments'],
-};
-
-const showOnlyForCommentWithId = {
-  resource: ['comments'],
-  operation: ['get', 'update', 'delete', 'reaction'],
-};
+import { commentsGetAllDescription } from './getAll';
+import { commentsGetDescription } from './get';
+import { commentsCreateDescription } from './create';
+import { commentsUpdateDescription } from './update';
+import { commentsDeleteDescription } from './delete';
+import { commentsReactionDescription } from './reaction';
 
 export const commentsDescription: INodeProperties[] = [
   {
@@ -15,7 +12,7 @@ export const commentsDescription: INodeProperties[] = [
     name: 'operation',
     type: 'options',
     noDataExpression: true,
-    displayOptions: { show: showOnlyForComments },
+    displayOptions: { show: { resource: ['comments'] } },
     options: [
       {
         name: 'Get Many',
@@ -62,77 +59,10 @@ export const commentsDescription: INodeProperties[] = [
     ],
     default: 'getAll',
   },
-  {
-    displayName: 'Task ID',
-    name: 'taskId',
-    type: 'string',
-    displayOptions: { show: { resource: ['comments'], operation: ['getAll', 'create'] } },
-    default: '',
-    description: 'ID of the task',
-  },
-  {
-    displayName: 'Comment ID',
-    name: 'commentId',
-    type: 'string',
-    displayOptions: { show: showOnlyForCommentWithId },
-    default: '',
-    required: true,
-    description: 'ID of the comment',
-  },
-  {
-    displayName: 'Comment Object (JSON)',
-    name: 'commentObject',
-    type: 'json',
-    displayOptions: { show: { resource: ['comments'], operation: ['create', 'update'] } },
-    default: '{"body":""}',
-    description: 'Comment payload. For create use {"comment": { "body": "text", "task_id": 123 }}',
-    routing: {
-      send: {
-        type: 'body',
-        property: 'comment',
-      },
-    },
-  },
-  {
-    displayName: 'Reaction Object (JSON)',
-    name: 'reactionObject',
-    type: 'json',
-    displayOptions: { show: { resource: ['comments'], operation: ['reaction'] } },
-    default: '{"reaction": { "kind": "like" }}',
-    description: 'Reaction payload, e.g. {"reaction": { "kind": "like" }}',
-    routing: {
-      send: {
-        type: 'body',
-        property: 'reaction',
-      },
-    },
-  },
-  {
-    displayName: 'Limit',
-    name: 'limit',
-    type: 'number',
-    displayOptions: { show: { resource: ['comments'], operation: ['getAll'], returnAll: [false] } },
-    typeOptions: { minValue: 1, maxValue: 100 },
-    default: 50,
-    routing: { send: { type: 'query', property: 'limit' }, output: { maxResults: '={{$value}}' } },
-    description: 'Max number of results to return',
-  },
-  {
-    displayName: 'Page',
-    name: 'page',
-    type: 'number',
-    displayOptions: { show: { resource: ['comments'], operation: ['getAll'], returnAll: [false] } },
-    default: 1,
-    description: 'Page number for pagination (1-based)',
-    routing: { send: { type: 'query', property: 'page' } },
-  },
-  {
-    displayName: 'Return All',
-    name: 'returnAll',
-    type: 'boolean',
-    displayOptions: { show: { resource: ['comments'], operation: ['getAll'] } },
-    default: false,
-    description: 'Whether to return all results or only up to a given limit',
-    routing: { send: { paginate: '={{ $value }}' }, operations: { pagination: { type: 'offset', properties: { limitParameter: 'limit', offsetParameter: 'offset', pageSize: 100, type: 'query' } } } },
-  },
+  ...commentsGetAllDescription,
+  ...commentsGetDescription,
+  ...commentsCreateDescription,
+  ...commentsUpdateDescription,
+  ...commentsDeleteDescription,
+  ...commentsReactionDescription,
 ];

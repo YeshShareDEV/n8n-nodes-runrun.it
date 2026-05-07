@@ -1,8 +1,8 @@
 import type { INodeProperties } from 'n8n-workflow';
-
-const showOnlyForChecklists = {
-  resource: ['checklists'],
-};
+import { checklistsGetDescription } from './get';
+import { checklistsCreateDescription } from './create';
+import { checklistsUpdateDescription } from './update';
+import { checklistsDeleteDescription } from './delete';
 
 export const checklistsDescription: INodeProperties[] = [
   {
@@ -10,7 +10,7 @@ export const checklistsDescription: INodeProperties[] = [
     name: 'operation',
     type: 'options',
     noDataExpression: true,
-    displayOptions: { show: showOnlyForChecklists },
+    displayOptions: { show: { resource: ['checklists'] } },
     options: [
       {
         name: 'Get',
@@ -43,26 +43,8 @@ export const checklistsDescription: INodeProperties[] = [
     ],
     default: 'get',
   },
-  {
-    displayName: 'Task ID',
-    name: 'taskId',
-    type: 'string',
-    displayOptions: { show: { resource: ['checklists'], operation: ['get', 'create', 'update', 'delete'] } },
-    default: '',
-    description: 'ID of the task',
-  },
-  {
-    displayName: 'Checklist Object (JSON)',
-    name: 'checklistObject',
-    type: 'json',
-    displayOptions: { show: { resource: ['checklists'], operation: ['create', 'update'] } },
-    default: '{"checklist": {"title":""}}',
-    description: 'Checklist payload, e.g. {"checklist": {"title": "Office Supplies"}}',
-    routing: {
-      send: {
-        type: 'body',
-        property: 'checklist',
-      },
-    },
-  },
+  ...checklistsGetDescription,
+  ...checklistsCreateDescription,
+  ...checklistsUpdateDescription,
+  ...checklistsDeleteDescription,
 ];

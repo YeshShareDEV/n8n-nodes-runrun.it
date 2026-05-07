@@ -1,139 +1,9 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { taskUpdateDescription } from './update';
 import { taskGetManyDescription } from './getAll';
-
-const showOnlyForTasks = {
-	resource: ['task'],
-};
-
-const showOnlyForTaskWithId = {
-	resource: ['task'],
-	operation: [
-		'get',
-		'get_subtasks',
-		'play',
-		'pause',
-		'change_board',
-		'change_project',
-		'change_type',
-		'reposition',
-		'reestimate',
-		'share',
-		'unshare',
-		'complete_workflow_step',
-		'undo_workflow_step',
-		'mark_as_urgent',
-		'unmark_as_urgent',
-		'create_assignments',
-		'move_to_top',
-		'move_to_next_stage',
-		'get_form_answers',
-		'get_fields',
-		'deliver',
-		'reopen',
-		'move',
-		'add_manual_work_period',
-		'change_time_worked',
-		'add_comment',
-		'update_comment',
-		'update',
-		'delete',
-	],
-};
-
-const taskGetDescription: INodeProperties[] = [
-	{
-		displayName: 'Task ID',
-		name: 'taskId',
-		type: 'string',
-		displayOptions: { show: showOnlyForTaskWithId },
-		default: '',
-		required: true,
-		description: 'ID of the task',
-	},
-];
-
-const taskCreateDescription: INodeProperties[] = [
-	{
-		displayName: 'Task Object (JSON)',
-		name: 'taskObject',
-		type: 'json',
-		default: '{"title":""}',
-		description: 'Task object to create. Will be sent as `task` in the body.',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'task',
-			},
-		},
-	},
-];
-
-const taskDeleteDescription: INodeProperties[] = [
-	{
-		displayName: 'Task ID',
-		name: 'taskId',
-		type: 'string',
-		displayOptions: { show: showOnlyForTaskWithId },
-		default: '',
-		required: true,
-		description: 'ID of the task to delete',
-	},
-];
-
-const showOnlyForActionOps = {
-	resource: ['task'],
-	operation: [
-		'play',
-		'pause',
-		'change_board',
-		'change_project',
-		'change_type',
-		'reposition',
-		'reestimate',
-		'share',
-		'unshare',
-		'complete_workflow_step',
-		'undo_workflow_step',
-		'create_assignments',
-		'move',
-		'add_manual_work_period',
-		'change_time_worked',
-		'add_comment',
-		'update_comment',
-		'clone',
-	],
-};
-
-const taskActionBody: INodeProperties[] = [
-	{
-		displayName: 'Payload (JSON)',
-		name: 'payload',
-		type: 'json',
-		displayOptions: { show: showOnlyForActionOps },
-		default: '{}',
-		description: 'Optional payload to send with the action',
-		routing: {
-			send: {
-				type: 'body',
-				property: 'data',
-			},
-		},
-	},
-	{
-		displayName: 'Comment ID',
-		name: 'commentId',
-		type: 'string',
-		displayOptions: {
-			show: {
-				operation: ['update_comment'],
-				resource: ['task'],
-			},
-		},
-		default: '',
-		description: 'ID of the comment to update (for Update Comment operation)',
-	},
-];
+import { taskGetDescription } from './get';
+import { taskCreateDescription } from './create';
+import { taskUpdateDescription } from './update';
+import { taskActionBody } from './actions';
 
 export const taskDescription: INodeProperties[] = [
 	{
@@ -374,6 +244,5 @@ export const taskDescription: INodeProperties[] = [
 	...taskGetDescription,
 	...taskCreateDescription,
 	...taskUpdateDescription,
-	...taskDeleteDescription,
 	...taskActionBody,
 ];
