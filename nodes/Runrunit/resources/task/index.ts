@@ -11,7 +11,7 @@ export const taskDescription: INodeProperties[] = [
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
-		displayOptions: { show: showOnlyForTasks },
+		displayOptions: { show: { resource: ['task'] } },
 		options: [
 			{
 				name: 'Add Comment',
