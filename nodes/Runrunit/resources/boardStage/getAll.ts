@@ -51,4 +51,26 @@ export const boardStageGetAllDescription: INodeProperties[] = [
     description: 'Page number for pagination (1-based)',
     routing: { send: { type: 'query', property: 'page' } },
   },
+  {
+    displayName: 'Sort',
+    name: 'sort',
+    type: 'string',
+    displayOptions: { show: showOnlyForBoardStageGetAll },
+    default: '',
+    description: 'Field name to sort results by',
+    routing: { send: { type: 'query', property: 'sort' } },
+  },
+  {
+    displayName: 'Sort Direction',
+    name: 'sort_dir',
+    type: 'options',
+    displayOptions: { show: showOnlyForBoardStageGetAll, hide: { sort: [''] } },
+    options: [
+      { name: 'Ascending', value: 'asc' },
+      { name: 'Descending', value: 'desc' },
+    ],
+    default: 'asc',
+    description: 'Direction to sort the results',
+    routing: { send: { type: 'query', property: 'sort_dir' } },
+  },
 ];

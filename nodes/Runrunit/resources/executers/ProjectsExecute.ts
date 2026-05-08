@@ -54,6 +54,8 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
   } else {
     qs.bypass_status_default = true;
   }
+  const sort = instance.getNodeParameter('sort', 0, '') as string;
+  if (sort) { qs.sort = sort; qs.sort_dir = instance.getNodeParameter('sort_dir', 0, 'asc') as string; }
   const resp = await makeRequest(instance, 'GET', '/projects', {}, qs);
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) normalizedArray = resp;

@@ -93,4 +93,26 @@ export const userGetManyDescription: INodeProperties[] = [
 			},
 		},
 	},
+	{
+		displayName: 'Sort',
+		name: 'sort',
+		type: 'string',
+		displayOptions: { show: showOnlyForUserGetMany },
+		default: '',
+		description: 'Field name to sort results by',
+		routing: { send: { type: 'query', property: 'sort' } },
+	},
+	{
+		displayName: 'Sort Direction',
+		name: 'sort_dir',
+		type: 'options',
+		displayOptions: { show: showOnlyForUserGetMany, hide: { sort: [''] } },
+		options: [
+			{ name: 'Ascending', value: 'asc' },
+			{ name: 'Descending', value: 'desc' },
+		],
+		default: 'asc',
+		description: 'Direction to sort the results',
+		routing: { send: { type: 'query', property: 'sort_dir' } },
+	},
 ];

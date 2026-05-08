@@ -76,6 +76,8 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
   if (returnAll) qs.limit = 99000;
   else { qs.limit = instance.getNodeParameter('limit', 0, 50); qs.page = instance.getNodeParameter('page', 0, 1); }
+  const sort = instance.getNodeParameter('sort', 0, '') as string;
+  if (sort) { qs.sort = sort; qs.sort_dir = instance.getNodeParameter('sort_dir', 0, 'asc') as string; }
   const resp = await makeRequest(instance, 'GET', '/clients', {}, qs);
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) normalizedArray = resp;
