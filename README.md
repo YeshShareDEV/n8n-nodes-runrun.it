@@ -312,7 +312,21 @@ Todas as operações **Get Many** suportam os parâmetros:
 
 ### Filtros Pós-Execução
 
-Os recursos **Task**, **Projects** e **Clients** suportam uma coleção `Filters` que permite filtrar os resultados localmente após a resposta da API, usando operadores como `equals`, `contains`, `gt`, `lt`, `isTrue`, `isFalse`.
+Os recursos **Task**, **Projects** e **Clients** suportam uma coleção `Filters` que permite filtrar os resultados localmente após a resposta da API, usando os seguintes operadores:
+
+| Operador | Símbolo | Aplicável a |
+|----------|---------|-------------|
+| `equals` | `=` | texto, número |
+| `contains` | `⊃` | texto |
+| `gt` | `>` | número |
+| `gte` | `>=` | número |
+| `lt` | `<` | número |
+| `lte` | `<=` | número |
+| `isTrue` | boolean verdadeiro | boolean |
+| `isFalse` | boolean falso | boolean |
+
+Em **Task**, o campo `sort` é um dropdown com as opções: `id`, `title`, `client_name`, `is_closed`, `project_name`, `last_activity_at`, `created_at`.
+Os campos de filtro adicionais disponíveis para Task incluem: `subtasks_count`, `subtasks_closed_count`, `attachments_count` (numéricos — use `gt`, `gte`, `lt`, `lte`).
 
 ---
 

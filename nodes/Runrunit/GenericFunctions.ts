@@ -119,7 +119,9 @@ export async function applyPostFilters(
           if (f.operator === 'equals') return String(itemValue) === String(filterValue);
           if (f.operator === 'contains') return String(itemValue).includes(filterValue);
           if (f.operator === 'gt') return Number(itemValue) > Number(filterValue);
+          if (f.operator === 'gte') return Number(itemValue) >= Number(filterValue);
           if (f.operator === 'lt') return Number(itemValue) < Number(filterValue);
+          if (f.operator === 'lte') return Number(itemValue) <= Number(filterValue);
           if (f.operator === 'isTrue') return itemValue === true || itemValue === 'true';
           if (f.operator === 'isFalse') return itemValue === false || itemValue === 'false';
           return true;
