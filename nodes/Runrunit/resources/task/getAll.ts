@@ -150,10 +150,20 @@ export const taskGetManyDescription: INodeProperties[] = [
     {
         displayName: 'Sort',
         name: 'sort',
-        type: 'string',
+        type: 'options',
         displayOptions: { show: showOnlyForTasks },
+        options: [
+            { name: '—', value: '' },
+            { name: 'ID', value: 'id' },
+            { name: 'Title', value: 'title' },
+            { name: 'Client Name', value: 'client_name' },
+            { name: 'Is Closed', value: 'is_closed' },
+            { name: 'Project Name', value: 'project_name' },
+            { name: 'Last Activity At', value: 'last_activity_at' },
+            { name: 'Created At', value: 'created_at' },
+        ],
         default: '',
-        description: 'Field name to sort results by',
+        description: 'Field to sort results by',
         routing: { send: { type: 'query', property: 'sort' } },
     },
     {
