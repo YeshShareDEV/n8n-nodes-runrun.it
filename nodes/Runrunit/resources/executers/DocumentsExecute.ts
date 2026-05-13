@@ -21,26 +21,22 @@ async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionDat
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-  //const inputData = instance.getInputData();
-  // 1. EXTRAÇÃO DE PARÂMETROS (Uma única vez, ignorando o loop de entrada)
-  // Usamos o índice 0 porque queremos o que o usuário configurou na interface do nó.
   const taskId = instance.getNodeParameter('taskId', 0, '') as string;
   const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
   const qs: Record<string, any> = {};
-  // MANTENDO OS VALORES ORIGINAIS QUE VOCÊ DEFINIU
+  let currentPage: number;
   if (returnAll) {
     qs.limit = 99000;
+    currentPage = 1;
   } else {
     qs.limit = instance.getNodeParameter('limit', 0, 50);
-    qs.page = instance.getNodeParameter('page', 0, 1);
+    currentPage = instance.getNodeParameter('page', 0, 1) as number;
+    qs.page = currentPage;
   }
   const sort = instance.getNodeParameter('sort', 0, '') as string;
   if (sort) { qs.sort = sort; qs.sort_dir = instance.getNodeParameter('sort_dir', 0, 'asc') as string; }
-  // 2. MONTAGEM DO PATH (Fiel à interface index.ts)
   const path = taskId ? `/tasks/${taskId}/documents` : '/documents';
-  // 3. A CHAMADA ÚNICA (FORA DO LOOP)
   const resp = await makeRequest(instance, 'GET', path, {}, qs);
-  // 4. NORMALIZAÇÃO DOS DADOS (Sua lógica de tratamento de array)
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) {
     normalizedArray = resp;
@@ -48,9 +44,19 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
     normalizedArray = resp.documents || resp.data || resp.items || [resp];
   }
   const items: INodeExecutionData[] = normalizedArray.map((obj: any) => ({ json: obj }));
-  // 5. FILTROS POST-EXECUÇÃO
   const finalItems = await applyPostFilters(instance, items, 0);
-  return [finalItems];
+  const finalData = finalItems.map(item => item.json);
+  const count = finalData.length;
+  return [[{
+    json: {
+      data: finalData,
+      metadata: {
+        count,
+        has_more_useful_data: count > 0,
+        page: currentPage,
+      },
+    },
+  }]];
 }
 
 async function handleDelete(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
