@@ -16,27 +16,10 @@ export const boardStageGetAllDescription: INodeProperties[] = [
     description: 'ID of the board',
   },
   {
-    displayName: 'Return All',
-    name: 'returnAll',
-    type: 'boolean',
-    displayOptions: { show: showOnlyForBoardStageGetAll },
-    default: false,
-    description: 'Whether to return all results or only up to a given limit',
-    routing: {
-      send: { paginate: '={{ $value }}' },
-      operations: {
-        pagination: {
-          type: 'offset',
-          properties: { limitParameter: 'limit', offsetParameter: 'offset', pageSize: 100, type: 'query' },
-        },
-      },
-    },
-  },
-  {
     displayName: 'Limit',
     name: 'limit',
     type: 'number',
-    displayOptions: { show: { ...showOnlyForBoardStageGetAll, returnAll: [false] } },
+    displayOptions: { show: showOnlyForBoardStageGetAll },
     typeOptions: { minValue: 1, maxValue: 100 },
     default: 50,
     routing: { send: { type: 'query', property: 'limit' }, output: { maxResults: '={{$value}}' } },
@@ -46,7 +29,7 @@ export const boardStageGetAllDescription: INodeProperties[] = [
     displayName: 'Page',
     name: 'page',
     type: 'number',
-    displayOptions: { show: { ...showOnlyForBoardStageGetAll, returnAll: [false] } },
+    displayOptions: { show: showOnlyForBoardStageGetAll },
     default: 1,
     description: 'Page number for pagination (1-based)',
     routing: { send: { type: 'query', property: 'page' } },

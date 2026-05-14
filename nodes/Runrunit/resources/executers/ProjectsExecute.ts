@@ -20,16 +20,9 @@ export async function execute(instance: IExecuteFunctions, operation: string): P
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const qs: Record<string, any> = {};
-  const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
-  let currentPage: number;
-  if (returnAll) {
-    qs.limit = 99000;
-    currentPage = 1;
-  } else {
-    qs.limit = instance.getNodeParameter('limit', 0, 50);
-    currentPage = instance.getNodeParameter('page', 0, 1) as number;
-    qs.page = currentPage;
-  }
+  qs.limit = instance.getNodeParameter('limit', 0, 50);
+  const currentPage = instance.getNodeParameter('page', 0, 1) as number;
+  qs.page = currentPage;
   const resp = await makeRequest(instance, 'GET', '/projects/filters', {}, qs);
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) normalizedArray = resp;
@@ -40,30 +33,18 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   const finalItems = (hasFilters && items.length > 0) ? await applyPostFilters(instance, items, 0) : items;
   const finalData = finalItems.map(item => item.json);
   const count = finalData.length;
-  return [[{
-    json: {
-      data: finalData,
-      metadata: {
-        count,
-        has_more_useful_data: count > 0,
-        page: currentPage,
-      },
-    },
-  }]];
+  if (count > 0) {
+    return [finalData.map((item: any) => ({ json: item }))];
+  } else {
+    return [[{ json: {} }]];
+  }
 }
 
 async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const qs: Record<string, any> = {};
-  const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
-  let currentPage: number;
-  if (returnAll) {
-    qs.limit = 99000;
-    currentPage = 1;
-  } else {
-    qs.limit = instance.getNodeParameter('limit', 0, 50);
-    currentPage = instance.getNodeParameter('page', 0, 1) as number;
-    qs.page = currentPage;
-  }
+  qs.limit = instance.getNodeParameter('limit', 0, 50);
+  const currentPage = instance.getNodeParameter('page', 0, 1) as number;
+  qs.page = currentPage;
   const clientId = instance.getNodeParameter('client_id', 0, 0) as number | null | undefined;
   if (clientId !== null && typeof clientId !== 'undefined' && clientId !== 0) qs.client_id = clientId;
   const projectGroupId = instance.getNodeParameter('project_group_id', 0, 0) as number | null | undefined;
@@ -92,16 +73,11 @@ async function handleGetAllProjects(instance: IExecuteFunctions): Promise<INodeE
   const finalItems = (hasFilters && items.length > 0) ? await applyPostFilters(instance, items, 0) : items;
   const finalData = finalItems.map(item => item.json);
   const count = finalData.length;
-  return [[{
-    json: {
-      data: finalData,
-      metadata: {
-        count,
-        has_more_useful_data: count > 0,
-        page: currentPage,
-      },
-    },
-  }]];
+  if (count > 0) {
+    return [finalData.map((item: any) => ({ json: item }))];
+  } else {
+    return [[{ json: {} }]];
+  }
 }
 
 async function handleGetProject(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {

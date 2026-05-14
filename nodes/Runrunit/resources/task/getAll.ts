@@ -8,23 +8,10 @@ const showOnlyForTasks = {
 export const taskGetManyDescription: INodeProperties[] = [
     // === Filtros da API (Filtros nativos do Runrunit) ===
     {
-        displayName: 'Return All',
-        name: 'returnAll',
-        type: 'boolean',
-        displayOptions: { show: showOnlyForTasks },
-        default: false,
-        description: 'Whether to return all results or only up to a given limit',
-    },
-    {
         displayName: 'Limit',
         name: 'limit',
         type: 'number',
-        displayOptions: {
-            show: {
-                ...showOnlyForTasks,
-                returnAll: [false],
-            },
-        },
+        displayOptions: { show: showOnlyForTasks },
         default: 50,
         description: 'Max number of results to return',
     },
@@ -32,12 +19,7 @@ export const taskGetManyDescription: INodeProperties[] = [
         displayName: 'Page',
         name: 'page',
         type: 'number',
-        displayOptions: {
-            show: {
-                ...showOnlyForTasks,
-                returnAll: [false],
-            },
-        },
+        displayOptions: { show: showOnlyForTasks },
         default: 1,
         description: 'Page number for pagination',
     },

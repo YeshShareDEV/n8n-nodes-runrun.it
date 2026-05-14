@@ -22,17 +22,10 @@ async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionDat
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
   const taskId = instance.getNodeParameter('taskId', 0, '') as string;
-  const returnAll = instance.getNodeParameter('returnAll', 0) as boolean;
   const qs: Record<string, any> = {};
-  let currentPage: number;
-  if (returnAll) {
-    qs.limit = 99000;
-    currentPage = 1;
-  } else {
-    qs.limit = instance.getNodeParameter('limit', 0, 50);
-    currentPage = instance.getNodeParameter('page', 0, 1) as number;
-    qs.page = currentPage;
-  }
+  qs.limit = instance.getNodeParameter('limit', 0, 50);
+  const currentPage = instance.getNodeParameter('page', 0, 1) as number;
+  qs.page = currentPage;
   const sort = instance.getNodeParameter('sort', 0, '') as string;
   if (sort) { qs.sort = sort; qs.sort_dir = instance.getNodeParameter('sort_dir', 0, 'asc') as string; }
   const path = taskId ? `/tasks/${taskId}/documents` : '/documents';
@@ -47,16 +40,11 @@ async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecution
   const finalItems = await applyPostFilters(instance, items, 0);
   const finalData = finalItems.map(item => item.json);
   const count = finalData.length;
-  return [[{
-    json: {
-      data: finalData,
-      metadata: {
-        count,
-        has_more_useful_data: count > 0,
-        page: currentPage,
-      },
-    },
-  }]];
+  if (count > 0) {
+    return [finalData.map((item: any) => ({ json: item }))];
+  } else {
+    return [[{ json: {} }]];
+  }
 }
 
 async function handleDelete(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
