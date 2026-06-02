@@ -10,6 +10,7 @@ export const commentsGetAllDescription: INodeProperties[] = [
     displayOptions: { show },
     default: '',
     description: 'ID of the task',
+    required: true,
   },
   {
     displayName: 'Limit',

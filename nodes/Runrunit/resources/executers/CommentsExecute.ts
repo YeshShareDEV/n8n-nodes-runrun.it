@@ -31,13 +31,15 @@ async function handleGet(instance: IExecuteFunctions): Promise<INodeExecutionDat
 }
 
 async function handleGetAll(instance: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+  const taskId = instance.getNodeParameter('taskId', 0) as string;
+  if (!taskId) throw new NodeOperationError(instance.getNode(), 'Task ID required for getAll comments');
   const qs: Record<string, any> = {};
   qs.limit = instance.getNodeParameter('limit', 0, 50);
   const currentPage = instance.getNodeParameter('page', 0, 1) as number;
   qs.page = currentPage;
   const sort = instance.getNodeParameter('sort', 0, '') as string;
   if (sort) { qs.sort = sort; qs.sort_dir = instance.getNodeParameter('sort_dir', 0, 'asc') as string; }
-  const resp = await makeRequest(instance, 'GET', '/comments', {}, qs);
+  const resp = await makeRequest(instance, 'GET', `/tasks/${taskId}/comments`, {}, qs);
   let normalizedArray: any[] = [];
   if (Array.isArray(resp)) normalizedArray = resp;
   else if (resp && typeof resp === 'object') normalizedArray = resp.comments || resp.data || resp.items || [resp];
